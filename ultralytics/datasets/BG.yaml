@@ -1,0 +1,16 @@
+# YOLOv8 数据集配置文件模板
+
+# 数据集的路径
+path: /home/bme-2020/czy/mydata  # 数据集的根目录路径
+
+# 训练集和验证集的相对路径
+train: images/train  # 训练集图像的相对路径
+val: images/val    # 验证集图像的相对路径
+test: images/test
+
+
+# 类别数量
+nc: 1  # 数据集中类别的数量
+
+# 类别名称
+names: ['Broken glass']  # 类别名称列表

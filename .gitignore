@@ -153,3 +153,20 @@ weights/
 *_web_model/
 *_openvino_model/
 *_paddle_model/
+
+# BGD-Yolo local datasets, experiment artifacts, and editor state
+/BGD_image/
+/BGD_lable/
+/yolo-runs/
+/run/
+/wdw_run/
+/visualize_tp_fp_fn/
+/script/runs/
+/detailModel/run/
+/.idea/
+/home/
+/*.ipynb
+/detailModel_val.ipynb
+/crop_img.jpg
+/gray.jpg
+/training_plot.png
