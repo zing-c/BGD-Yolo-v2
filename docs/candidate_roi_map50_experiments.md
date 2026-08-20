@@ -6,7 +6,7 @@
 
 - 历史协议下 test mAP50 最优版本是 **v57 Image Relation：94.6496%**。
 - `train10/weights/best.pt` 的纯 YOLO baseline 在当前统一参数下为 **92.6368% mAP50**。
-- v57 已按当前统一参数完成兼容复测，mAP50 为 **94.6804%**，相对 baseline 提高 **2.0436 个百分点**。
+- v57 checkpoint 的兼容核心路径已按当前统一参数复测，mAP50 为 **94.6804%**，相对 baseline 提高 **2.0436 个百分点**；该次复测未启用原 v57 的 image-relation head，不能标作完整原版 v57。
 - v52 至 v57 是同一 Candidate-ROI 方法的连续、可解释演进，不是事后替换检测头或拼接不同 checkpoint 的结果。
 - v64/v65 是从该系列继续发展的背景抑制分支：v64 训练背景课程，v65 在 v64 权重上启用 group-relation consensus gate。
 
@@ -35,7 +35,7 @@ batch=1, conf=0.5, NMS IoU=0.5, imgsz=640
 
 Candidate-ROI 的内部候选阈值始终是 `candidate_conf=0.1`。它只决定哪些原始候选进入 Grad-CAM/Detail 分支，不是最终 test 指标使用的 `conf=0.5`。
 
-> 重要：下面 Candidate-ROI 排名是可靠的历史 test 记录。v54 和 v57 已按 `batch=1, NMS IoU=0.5` 完成兼容复测，其余版本尚未统一复测。不同协议的结果不能作为最终论文表格中的严格同协议比较。
+> 重要：下面 Candidate-ROI 排名是可靠的历史 test 记录。v54 和 v57 checkpoint 已按 `batch=1, NMS IoU=0.5` 完成兼容核心路径复测，其余版本尚未统一复测。v57 兼容复测时 image-relation head 为惰性，因此不能作为完整原版 v57 的正式论文结果。
 
 ## 3. test mAP50 排名
 
@@ -65,7 +65,7 @@ deployment NMS IoU=0.5, evaluation NMS IoU=0.5
 | 版本 | Precision | Recall | mAP50 | mAP75 | mAP50-95 | 相对 baseline mAP50 |
 |---|---:|---:|---:|---:|---:|---:|
 | v54 Two-view Supported | 93.8865% | 91.8803% | **94.6053%** | 92.0283% | 88.0498% | +1.9685 pp |
-| v57 Image Relation | 94.7137% | 91.8803% | **94.6804%** | 92.1097% | **88.5227%** | **+2.0436 pp** |
+| v57 checkpoint（image-relation head 惰性） | 94.7137% | 91.8803% | **94.6804%** | 92.1097% | **88.5227%** | **+2.0436 pp** |
 
 为了单独观察 NMS IoU 的影响，另保持历史 `batch=4` 不变，只将内部 deployment NMS 和外部 evaluation NMS 从 0.7 改为 0.5：
 
@@ -76,7 +76,7 @@ deployment NMS IoU=0.5, evaluation NMS IoU=0.5
 
 两个版本的 Recall 均保持 91.8803%，Precision 上升。该 test 集以单目标和纯背景图为主，较低的 NMS IoU 更积极地删除同一目标的重复候选，因此 mAP50 没有下降；但变化仅约 0.04～0.05 个百分点，说明 NMS 不是主要提升来源。
 
-兼容性校验：由于 v54/v57 的独立源码快照没有封存，本次使用 v70 留档恢复历史分支。恢复后先用原 `batch=4, IoU=0.7` 回归：v54 与原记录相差 0.0150 pp，v57 相差 0.0114 pp，且 Precision/Recall 完全一致。因此新结果可用于判断 NMS 影响，但正式论文应注明为兼容实现复测。
+兼容性校验：由于 v54/v57 的独立源码快照没有封存，本次使用 v70 留档恢复兼容核心路径。原 v57 image-relation projection 接收 54 维输入，而 v70 接口生成 56 维输入；为避免重置旧 head 后冒充原方法，复测时将该分支置为惰性。随后用原 `batch=4, IoU=0.7` 回归：v54 与原记录相差 0.0150 pp，v57 相差 0.0114 pp，且 Precision/Recall 完全一致。新结果可用于判断 NMS 影响，但 v57 的完整原版正式结果仍需恢复 54 维关系特征构造后重测。
 
 ## 4. YOLO baseline：旧记录与新核验
 
@@ -337,7 +337,7 @@ v64 best.pt + v65 inference gate -> test mAP50 94.4410%
 ## 8. 复现注意事项
 
 1. 当前工作区的 `candidate_roi_fusion.py` 已继续演进到 v77。虽然其中保留了 v53～v65 的核心逻辑和部分精确消融开关，但它不是独立封存的 v57 源码快照。
-2. 旧 checkpoint 不能直接套用当前 v77 wrapper，否则新增或重置的 head 会改变方法语义。本文 v54/v57 新协议结果通过 v70 留档恢复历史分支，并以旧协议指标回归校验；它们属于兼容实现复测，不是当前 v77 的结果。
+2. 旧 checkpoint 不能直接套用当前 v77 wrapper，否则新增或重置的 head 会改变方法语义。本文 v54/v57 新协议结果通过 v70 留档恢复兼容核心路径，并以旧协议指标回归校验；它们不是当前 v77 的结果，其中 v57 的旧 54 维 image-relation head 在该复测中未启用。
 3. 正式论文表格应恢复/重建 checkpoint 对应的兼容代码，再对 baseline 与所有候选版本统一使用：
 
 ```text
