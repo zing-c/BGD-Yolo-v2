@@ -57,8 +57,15 @@ levels and introduce no alpha mixing hyperparameter.
 
 ## Artifacts
 
-Weights remain local because each file is about 685 MB and this repository has
-no Git LFS installation:
+Both completed best checkpoints are published in the GitHub Release
+[best318-gradcam-heads-20260821](https://github.com/zing-c/BGD-Yolo-v2/releases/tag/best318-gradcam-heads-20260821).
+
+| Model / test mAP50-95 | GitHub weight | Local weight | Size | SHA-256 |
+| --- | --- | --- | ---: | --- |
+| low/P5 alpha 0.5 / **0.887504** | [best318_low_p5_alpha05_best.pt](https://github.com/zing-c/BGD-Yolo-v2/releases/download/best318-gradcam-heads-20260821/best318_low_p5_alpha05_best.pt) | `experiments/runs/best318_low_detectconv_gradcam_alpha05_e50_lr1e4/weights/best.pt` | 685,018,627 bytes | `f1a976ed1e34a7c9da759cd772600e6900f90ac18ab394db1dcb42a8fa234a4b` |
+| high/P3 direct / **0.882735** | [best318_high_p3_direct_best.pt](https://github.com/zing-c/BGD-Yolo-v2/releases/download/best318-gradcam-heads-20260821/best318_high_p3_direct_best.pt) | `experiments/runs/best318_high_detectconv_direct_e50_lr1e4/weights/best.pt` | 685,017,027 bytes | `75e20890c69e3da39d3c477d2877a384c025ad6eb36f2b4555ed2dfb995bf904` |
+
+The local paths and checksums are repeated below for command-line use:
 
 - `experiments/runs/best318_low_detectconv_gradcam_alpha05_e50_lr1e4/weights/best.pt`
   - SHA-256: `f1a976ed1e34a7c9da759cd772600e6900f90ac18ab394db1dcb42a8fa234a4b`
@@ -67,3 +74,5 @@ no Git LFS installation:
 
 The lightweight CSV histories and exact test metrics are committed beside this
 report. Model artifacts are also associated with the W&B runs linked above.
+The still-running multi-head experiment is intentionally excluded until its
+final `best.pt` and exact test metrics are available.
