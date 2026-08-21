@@ -19,6 +19,7 @@
     },
     "high_p3_direct": {
       "best_weight_sha256": "75e20890c69e3da39d3c477d2877a384c025ad6eb36f2b4555ed2dfb995bf904",
+      "best_weight_url": "https://github.com/zing-c/BGD-Yolo-v2/releases/download/best318-gradcam-heads-20260821/best318_high_p3_direct_best.pt",
       "map50": 0.9373864654838518,
       "map50_95": 0.8827347444334619,
       "map75": 0.9076419060477051,
@@ -29,6 +30,7 @@
     },
     "low_p5_alpha_0_5": {
       "best_weight_sha256": "f1a976ed1e34a7c9da759cd772600e6900f90ac18ab394db1dcb42a8fa234a4b",
+      "best_weight_url": "https://github.com/zing-c/BGD-Yolo-v2/releases/download/best318-gradcam-heads-20260821/best318_low_p5_alpha05_best.pt",
       "map50": 0.9350495990678608,
       "map50_95": 0.88750449316474,
       "map75": 0.9160331159704023,
