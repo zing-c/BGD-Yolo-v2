@@ -142,6 +142,12 @@ def load_checkpoint(model, model_type, checkpoint_path, device):
         elif model_type=='BGD_model':
             state_dict = torch.load(checkpoint_path, map_location=device)['detail_model']
 
+        if isinstance(state_dict, dict):
+            for key in ('detail_model', 'detail_encoder', 'state_dict', 'model_state_dict'):
+                if key in state_dict and isinstance(state_dict[key], dict):
+                    state_dict = state_dict[key]
+                    break
+
         # 这种方式可以过滤掉不匹配的 key，实现“局部加载”
         model_dict = model.state_dict()
         # 1. 过滤掉不存在于当前模型中的 key
@@ -258,12 +264,11 @@ def run_evaluation(model_type,checkpoint_path,sigmoid_need,use_T=False, threshol
 if __name__ == '__main__':
     # 确保 GlassDataset 在当前作用域可用
     run_evaluation(model_type='Detail_model',# Detail_model or BGD_model
-                   checkpoint_path ='run/detail_net_atten/exp3_4_1.pt',
+                   checkpoint_path ='run/detail_net_atten/zip_compressed_d12_v1.pt',
                    use_T=False,
                    sigmoid_need=False,
                    threshold=0.5
                    )
-
 
 
 

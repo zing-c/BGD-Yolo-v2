@@ -1,6 +1,6 @@
 # Candidate-ROI 高 mAP50 版本实现与 YOLO Baseline 对照
 
-本文档记录 2026-08-17 至 2026-08-20 在 BGD test 集上的 Candidate-ROI 高 mAP50 版本、共享方法、逐版本差异、训练继承关系以及 YOLO baseline 的新旧测试结果。
+本文档记录 2026-08-17 至 2026-08-21 在 BGD test 集上的 Candidate-ROI 高 mAP50 版本、共享方法、逐版本差异、训练继承关系以及 YOLO baseline 的新旧测试结果。
 
 ## 1. 结论
 
@@ -77,6 +77,53 @@ deployment NMS IoU=0.5, evaluation NMS IoU=0.5
 两个版本的 Recall 均保持 91.8803%，Precision 上升。该 test 集以单目标和纯背景图为主，较低的 NMS IoU 更积极地删除同一目标的重复候选，因此 mAP50 没有下降；但变化仅约 0.04～0.05 个百分点，说明 NMS 不是主要提升来源。
 
 兼容性校验：由于 v54/v57 的独立源码快照没有封存，本次使用 v70 留档恢复兼容核心路径。原 v57 image-relation projection 接收 54 维输入，而 v70 接口生成 56 维输入；为避免重置旧 head 后冒充原方法，复测时将该分支置为惰性。随后用原 `batch=4, IoU=0.7` 回归：v54 与原记录相差 0.0150 pp，v57 相差 0.0114 pp，且 Precision/Recall 完全一致。新结果可用于判断 NMS 影响，但 v57 的完整原版正式结果仍需恢复 54 维关系特征构造后重测。
+
+### 3.2 train10 起点的轻量 Cross-Attention 尝试（失败）
+
+2026-08-20 直接从 `yolo-runs/train/train10/weights/best.pt` 初始化 YOLO，未继承 v54 或其他 Candidate-ROI checkpoint；Detail 分支使用独立预训练权重。当前完整 Candidate-ROI 框架中新加一层 `dim=32, heads=4` 的 Cross-Attention，以 YOLO ROI 为 query、Detail 4x4 特征为 key/value，并通过零初始化的标量残差门接回原融合表示。
+
+- Cross-Attention 新增参数：5,969
+- 总有效参数：3,134,919
+- stage2 全模型联合 fine-tune：3 epochs，`candidate_conf=0.1`
+- 训练前残差 identity 最大误差：0
+- 训练后残差门 `tanh(scale)=0.000462`，说明注意力分支实际贡献很弱
+- W&B：<https://wandb.ai/zing_c-ningbo-university/BGD-YOLO/runs/gm0gvu3c>
+
+正式 test 结果（`batch=1, conf=0.5, NMS IoU=0.5, imgsz=640`）：
+
+| 版本 | Precision | Recall | mAP50 | mAP75 | mAP50-95 | 相对 YOLO baseline mAP50 |
+|---|---:|---:|---:|---:|---:|---:|
+| train10 + 当前框架，训练前零残差起点 | 94.1441% | 89.3162% | 93.2572% | 90.7052% | 87.6926% | +0.6204 pp |
+| train10 + Cross-Attention，3 epoch best | 96.5446% | 83.5834% | **90.8315%** | 88.4246% | 85.7342% | **-1.8053 pp** |
+
+结论：该尝试提高了 Precision，但 Recall 大幅下降，mAP50 相对训练前起点下降 2.4257 pp，未达到目标。注意力门几乎停留在零点；当前主要失败仍来自整套候选判别/融合路径偏向保守抑制，而不是 Transformer 参数量不足。该结果不得进入高 mAP50 排名表。
+
+### 3.3 更强 YOLO 权重上的 v54/v57 迁移实验
+
+2026-08-21 将更强的纯 YOLO checkpoint 中所有原生 YOLO tensor 精确迁移到 v54/v57 checkpoint，保留各自的 Detail 与融合权重，然后进行 6 epochs stage2 全模型联合微调。测试协议仍为 `batch=1, conf=0.5, NMS IoU=0.5, imgsz=640`；训练期间候选阈值为 `candidate_conf=0.1`。
+
+更强 YOLO 权重：
+
+```text
+experiments/runs/train317_yoloonly_recallft_cls15_e30_seed0_20260816_r9/weights/best.pt
+```
+
+该 checkpoint 的部署结构是纯 YOLO（3,011,043 参数），但它由 train317 联合模型导出 YOLO 后继续约 25 epochs 纯 YOLO 微调得到，因此不是完全独立训练的论文 baseline。本实验只用于检验“更强检测器 + 既有 Detail/融合方法”能否产生可叠加增益。
+
+| 版本 | Precision | Recall | mAP50 | mAP75 | mAP50-95 | 相对强 YOLO mAP50 |
+|---|---:|---:|---:|---:|---:|---:|
+| 更强 YOLO | **97.9254%** | 90.1709% | **94.5320%** | 93.2795% | **90.9286%** | — |
+| v54 迁移后、未微调 | 94.9309% | 88.0342% | 92.2089% | 91.1225% | 88.7675% | -2.3232 pp |
+| v57 迁移后、未微调 | 94.9309% | 88.0342% | 92.1973% | 91.1036% | 88.7148% | -2.3347 pp |
+| v54 兼容实现，6 epoch best | 96.3964% | **91.4530%** | 94.1263% | 92.7610% | 90.5359% | -0.4057 pp |
+| v57 兼容实现，6 epoch best | 96.8182% | 91.0256% | **94.4230%** | **93.3116%** | 90.9193% | -0.1090 pp |
+
+v54 W&B：<https://wandb.ai/zing_c-ningbo-university/BGD-YOLO/runs/u73lq25t>
+v57 W&B：<https://wandb.ai/zing_c-ningbo-university/BGD-YOLO/runs/y1avtq2k>
+
+结论：v57 基本追平强 YOLO，并将 Recall 提高 0.8547 pp、mAP75 提高 0.0321 pp，但 Precision 下降 1.1072 pp，最终 mAP50 仍低 0.1090 pp；v54 的 mAP50 低 0.4057 pp。即更强 YOLO 权重能显著改善这两个版本的绝对结果，但 Detail/融合增益与该权重已有能力重叠，并未简单相加。
+
+复现限制：v54/v57 独立源码没有完整封存，本实验通过 v70 留档恢复兼容路径；v57 的 54 维 image-relation 输入按 checkpoint 结构重建，且关闭 v57 之后加入的 presence/prototype expert。因此这些结果应标记为“v70-compatible warm-start”，不能冒充严格的原版 v54/v57 复现。
 
 ## 4. YOLO baseline：旧记录与新核验
 
@@ -333,6 +380,7 @@ v64 best.pt + v65 inference gate -> test mAP50 94.4410%
 | v55 | `experiments/runs/train10_candidate_roi_v55_quality_consistent_joint_s2_e6_seed0_20260817_r77/weights/best.pt` | `experiments/runs/val_test_v55_quality_consistent_best_conf05_iou07_20260817_r78.log` |
 | v57 | `experiments/runs/train10_candidate_roi_v57_image_relation_joint_s2_e6_seed0_20260817_r87/weights/best.pt` | `experiments/runs/val_test_v57_image_relation_best_conf05_iou07_20260817_r88.log` |
 | v64/v65 | `experiments/runs/train10_candidate_roi_v64_balanced_background_joint_s2_e2_seed0_20260817_r111/weights/best.pt` | `experiments/runs/test_v64_balanced_background_v65_gate_conf05_iou07_20260817_r115.log` |
+| train10 + Cross-Attention（失败） | `experiments/runs/train10_candidate_roi_v78_cross_attention_s2_e3_seed0_20260820/weights/best.pt` | `experiments/runs/val_test_v78_cross_attention_best_conf05_iou05_batch1_20260820/` |
 
 ## 8. 复现注意事项
 

@@ -13,7 +13,15 @@ from typing import Optional
 
 import cv2
 import numpy as np
-import pkg_resources as pkg
+try:
+    import pkg_resources as pkg
+except ImportError:  # setuptools >= 81 may no longer expose pkg_resources
+    from packaging.version import parse as _parse_version
+
+    class _PkgResourcesCompat:
+        parse_version = staticmethod(_parse_version)
+
+    pkg = _PkgResourcesCompat()
 import psutil
 import requests
 import torch

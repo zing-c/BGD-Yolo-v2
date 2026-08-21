@@ -184,10 +184,13 @@ class YOLODataset(BaseDataset):
     def collate_fn(batch):
         """Collates data samples into batches."""
         new_batch = {}
-        keys = batch[0].keys()
-        values = list(zip(*[list(b.values()) for b in batch]))
-        for i, k in enumerate(keys):
-            value = values[i]
+        # Dictionary insertion order can differ after Mosaic/LetterBox because
+        # custom samples add ``ori_img`` at different points.  Positional
+        # zipping silently pairs a later sample's tuple (e.g. ``ratio_pad``)
+        # with the first sample's ``img`` key.  Collate explicitly by key.
+        keys = tuple(batch[0].keys())
+        for k in keys:
+            value = tuple(sample[k] for sample in batch)
             if k == 'img':
                 value = torch.stack(value, 0)
             if k in ['masks', 'keypoints', 'bboxes', 'cls']:

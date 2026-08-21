@@ -9,13 +9,14 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from PIL import Image
 import os
+from pathlib import Path
 import torchvision.models as models
 import matplotlib.pyplot as plt
 
-from sklearn.metrics import precision_score, recall_score, f1_score
 from torch.optim.lr_scheduler import StepLR
 from detailModel.inceptionBlock import Inception_atten,Inception_atten_conv,InceptionResidual_atten
 from Resnet6 import Detail_Net_attn,Detail_Net_attn_dialation
+from detail_model import DETAIL_ARCH_VERSION
 
 import cv2
 import numpy as np
@@ -36,7 +37,7 @@ from PIL import Image
 #         return weighted_loss.mean()
 #
 class FocalLoss(nn.Module):
-    def __init__(self, alpha=0.5, gamma=1.0, reduction='mean'):
+    def __init__(self, alpha=0.5, gamma=2.0, reduction='mean'):
         super(FocalLoss, self).__init__()
         self.alpha = alpha
         self.gamma = gamma
@@ -102,9 +103,14 @@ def validator(val_ataloader,model,device):
             total += labels.size(0)
 
     acc = 100 * correct / total
-    precision = precision_score(all_labels, all_predicted, zero_division=0)
-    recall = recall_score(all_labels, all_predicted, zero_division=0)
-    f1 = f1_score(all_labels, all_predicted, zero_division=0)
+    labels_tensor = torch.as_tensor(np.asarray(all_labels)).reshape(-1).bool()
+    predictions_tensor = torch.as_tensor(np.asarray(all_predicted)).reshape(-1).bool()
+    true_positive = (labels_tensor & predictions_tensor).sum().item()
+    false_positive = ((~labels_tensor) & predictions_tensor).sum().item()
+    false_negative = (labels_tensor & (~predictions_tensor)).sum().item()
+    precision = true_positive / max(true_positive + false_positive, 1)
+    recall = true_positive / max(true_positive + false_negative, 1)
+    f1 = 2 * precision * recall / max(precision + recall, 1e-12)
 
     model.train()
     return acc, precision, recall, f1
@@ -136,7 +142,7 @@ def plot_training_history(history):
 
     plt.tight_layout()
     plt.savefig('training_plot.png') # 保存结果图
-    plt.show()
+    plt.close()
 
 def mode(task='train'):
     device = 'cuda'
@@ -197,7 +203,7 @@ def mode(task='train'):
 
 
         # 训练过程
-        num_epochs = 30
+        num_epochs = 40
         max_acc = 0
         for epoch in range(num_epochs):
             model.train()
@@ -243,7 +249,20 @@ def mode(task='train'):
 
             if max_acc <= acc and epoch > 4:
                 max_acc = acc
-                torch.save(model.state_dict(), 'run/detail_net_atten/exp3_4_1.pt')
+                checkpoint_path = Path('run/detail_net_atten') / f'{DETAIL_ARCH_VERSION}.pt'
+                checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+                torch.save(
+                    {
+                        'detail_arch': DETAIL_ARCH_VERSION,
+                        'state_dict': model.state_dict(),
+                        'epoch': epoch + 1,
+                        'val_accuracy': acc,
+                        'val_precision': prec,
+                        'val_recall': rec,
+                        'val_f1': f1,
+                    },
+                    checkpoint_path,
+                )
 
         # === 关键：在此处添加调用语句 ===
         print("训练结束，正在生成可视化图表...")

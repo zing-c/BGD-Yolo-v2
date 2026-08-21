@@ -12,9 +12,17 @@ from ultralytics.yolo.utils.metrics import ClassifyMetrics, ConfusionMatrix
 from ultralytics.yolo.utils.plotting import plot_images
 from ultralytics.yolo.cfg import get_cfg
 from pathlib import Path
-from pytorch_grad_cam.base_cam import BaseCAM
-from pytorch_grad_cam.utils.image import scale_cam_image
-from pytorch_grad_cam.utils.svd_on_activations import get_2d_projection
+try:
+    from pytorch_grad_cam.utils.image import scale_cam_image
+    from pytorch_grad_cam.utils.svd_on_activations import get_2d_projection
+except ImportError:
+    # Score-fusion experiments do not use CAM. Defer this optional dependency
+    # until a CAM code path is explicitly selected.
+    def _missing_grad_cam(*args, **kwargs):
+        raise ImportError('pytorch-grad-cam is required for CAM localization.')
+
+    scale_cam_image = _missing_grad_cam
+    get_2d_projection = _missing_grad_cam
 import numpy as np
 from typing import Callable, List, Optional, Tuple
 from gradcam import letterbox, find_max_heatmap_center, find_max_heatmap_center_torch, find_max_heatmap_center_torch_optimized,attempt_load_weights, convert_to_original_coords, yolov8_target,yolov8_target_batch
@@ -60,7 +68,7 @@ class BGD_YOLO(YOLO):
         self.head_dict = { 'mid': 0, 'low': 1}
         self.detail_position =detail_position
         self.detail_num = detail_num
-        self.detail_max_boxes = None  # Set to an int to enable top-k limiting.
+        self.detail_max_boxes = 20  # NMS-filtered candidates per image.
 
 
         self.debug_vis = bool(debug_vis)
@@ -94,7 +102,7 @@ class BGD_YOLO(YOLO):
             if str(model).endswith(".pt") is True:
                 if detail_weight is not None:
                     # Explicit detail weights take precedence (covers model_weight_only_yolo True/False).
-                    loaded = torch.load(detail_weight, map_location="cpu")
+                    loaded = torch.load(detail_weight, map_location="cpu", weights_only=False)
                     detail_dict = _unwrap_state_dict(loaded)
                     detail_model = Detail_Net_attn()
                     detail_model.load_state_dict(detail_dict, strict=False)
@@ -102,7 +110,7 @@ class BGD_YOLO(YOLO):
                     # Only YOLO weights are available, initialize detail model randomly.
                     detail_model = Detail_Net_attn()
                 else:  # validation: expect detail weights stored in the YOLO checkpoint.
-                    loaded = torch.load(model, map_location="cpu")
+                    loaded = torch.load(model, map_location="cpu", weights_only=False)
                     loaded = loaded if isinstance(loaded, dict) else {}
                     if "detail_model" not in loaded:
                         raise ValueError(
@@ -465,13 +473,24 @@ class BGD_YOLO(YOLO):
                     continue
 
                 valid_indices = torch.nonzero(mask).squeeze(1)
-                # 限制处理数量，防止训练时显存爆炸 (例如最多处理 100 个框)
-                if len(valid_indices) > 100 and self.model.training:
-                    # 随机采样或者取分数最高的 TopK
-                    _, topk_idx = torch.topk(cls_scores[mask], 100)
+                # First cap raw anchors, then NMS them. Adjacent raw anchors often
+                # represent the same object and must not trigger duplicate crops.
+                pre_nms_topk = 100
+                if len(valid_indices) > pre_nms_topk:
+                    _, topk_idx = torch.topk(cls_scores[valid_indices], pre_nms_topk)
                     valid_indices = valid_indices[topk_idx]
 
                 valid_boxes = pred_b[valid_indices, :4]  # xywh
+                valid_boxes_xyxy = xywh2xyxy(valid_boxes)
+                keep = self._nms_xyxy_cpu(
+                    valid_boxes_xyxy.detach(),
+                    cls_scores[valid_indices].detach(),
+                    self.iou_threshold,
+                ).to(valid_indices.device)
+                if self.detail_max_boxes is not None:
+                    keep = keep[:self.detail_max_boxes]
+                valid_indices = valid_indices[keep]
+                valid_boxes = pred_b[valid_indices, :4]
                 valid_boxes_xyxy = xywh2xyxy(valid_boxes)
 
                 # --- 准备截图源 ---
@@ -588,7 +607,7 @@ class BGD_YOLO(YOLO):
                             crop_images_list.append(patch_t)
 
                     # 记录映射关系
-                    mapping_indices.append((b_idx, box_idx))
+                    mapping_indices.append((b_idx, int(box_idx)))
 
             if crop_images_list:
                 batch_crops = torch.stack(crop_images_list)
@@ -661,8 +680,10 @@ class BGD_YOLO(YOLO):
                 # new_scores = torch.sqrt(vote_scores * old_scores)
                 # =======================================================
 
-                # 2. 更新 x[0] (用于推理/验证)
-                x[0][b_idxs, 4, a_idxs] = new_scores.to(x[0].dtype)
+                # Update decoded scores only for validation/inference. Training
+                # returns raw logits and is fused below without in-place writes.
+                if not self.model.training:
+                    x[0][b_idxs, 4, a_idxs] = new_scores.to(x[0].dtype)
                 if debug_vis_payload:
                     # 1. 将必要数据转到 CPU 准备构建映射
                     b_cpu = b_idxs.detach().to(device="cpu", dtype=torch.int64)
@@ -757,35 +778,34 @@ class BGD_YOLO(YOLO):
                 # 【替换逻辑】 Part B: 更新 x[1] (Training Logits)
                 # =================================================================
                 if self.model.training:
-                    # 构造"比率 Mask"，欺骗下面的乘法逻辑，实现"等效替换"
-                    # Ratio = Target / Old
-                    ratio = vote_scores / (old_scores + 1e-6)
+                    # Use the same 0.5/0.5 probability fusion in training and
+                    # inference. This preserves gradients to both YOLO and Detail.
+                    selected = torch.zeros(
+                        x[0].shape[0], x[0].shape[2], device=self.device, dtype=torch.bool
+                    )
+                    detail_prob = torch.zeros(
+                        x[0].shape[0], x[0].shape[2], device=self.device, dtype=vote_scores.dtype
+                    )
+                    selected[b_idxs, a_idxs] = True
+                    detail_prob[b_idxs, a_idxs] = vote_scores
 
-                    # 构造全 1 的掩码
-                    total_anchors = x[0].shape[2]
-                    score_mask = torch.ones(x[0].shape[0], total_anchors, device=self.device)
-
-                    # 填入比率 (而不是分数!)
-                    score_mask[b_idxs, a_idxs] = ratio
-
-                    # --- 下面这段代码保持不变 (利用乘法逻辑实现 Logits 更新) ---
                     split_sizes = [feat.shape[2] * feat.shape[3] for feat in x_raw]
-                    mask_splits = torch.split(score_mask, split_sizes, dim=1)
+                    selected_splits = torch.split(selected, split_sizes, dim=1)
+                    detail_splits = torch.split(detail_prob, split_sizes, dim=1)
 
                     new_x_raw = []
                     for i, raw_feat in enumerate(x_raw):
                         B, C, H, W = raw_feat.shape
-                        layer_mask = mask_splits[i].view(B, 1, H, W)
+                        layer_selected = selected_splits[i].view(B, 1, H, W)
+                        layer_detail = detail_splits[i].view(B, 1, H, W)
 
-                        bbox_logits = raw_feat[:, :4, ...]
-                        cls_logits = raw_feat[:, 4:, ...]
+                        box_channels = m.reg_max * 4
+                        bbox_logits = raw_feat[:, :box_channels, ...]
+                        cls_logits = raw_feat[:, box_channels:, ...]
 
-                        # 核心逻辑:
-                        # New_Prob = Old_Prob * Ratio
-                        #          = Old_Prob * (New_Score / Old_Prob)
-                        #          = New_Score (实现替换)
                         current_prob = cls_logits.sigmoid()
-                        new_prob = current_prob * layer_mask
+                        fused_prob = alpha * layer_detail + (1 - alpha) * current_prob
+                        new_prob = torch.where(layer_selected, fused_prob, current_prob)
 
                         new_prob = torch.clamp(new_prob, min=1e-6, max=1-1e-6)
                         new_cls_logits = torch.logit(new_prob)

@@ -1,0 +1,41 @@
+{
+  "date": "2026-08-21",
+  "test_config": {
+    "batch": 1,
+    "conf": 0.5,
+    "device": 0,
+    "imgsz": 640,
+    "iou": 0.5,
+    "split": "test"
+  },
+  "models": {
+    "best318_baseline": {
+      "map50": 0.9265142794754854,
+      "map50_95": 0.8721973664749033,
+      "map75": 0.9013979639077859,
+      "precision": 0.9541284403669725,
+      "recall": 0.8888888888888888,
+      "inference_ms_per_image": 54.9
+    },
+    "high_p3_direct": {
+      "best_weight_sha256": "75e20890c69e3da39d3c477d2877a384c025ad6eb36f2b4555ed2dfb995bf904",
+      "map50": 0.9373864654838518,
+      "map50_95": 0.8827347444334619,
+      "map75": 0.9076419060477051,
+      "precision": 0.9422222222222222,
+      "recall": 0.905982905982906,
+      "inference_ms_per_image": 53.114439280370306,
+      "wandb": "https://wandb.ai/zing_c-ningbo-university/BGD-YOLO/runs/2mx54q9b"
+    },
+    "low_p5_alpha_0_5": {
+      "best_weight_sha256": "f1a976ed1e34a7c9da759cd772600e6900f90ac18ab394db1dcb42a8fa234a4b",
+      "map50": 0.9350495990678608,
+      "map50_95": 0.88750449316474,
+      "map75": 0.9160331159704023,
+      "precision": 0.9501231673417909,
+      "recall": 0.8954888873962221,
+      "inference_ms_per_image": 53.32777213692218,
+      "wandb": "https://wandb.ai/zing_c-ningbo-university/BGD-YOLO/runs/1ghxfq1l"
+    }
+  }
+}

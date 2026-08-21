@@ -431,27 +431,34 @@ class BaseTrainer:
             'epoch': self.epoch,
             'best_fitness': self.best_fitness,
             'model': self.model.state_dict(),
-            'detail_model': self.model.detail_model.state_dict(),
             'ema': deepcopy(self.ema.ema).half(),
             'updates': self.ema.updates,
             'optimizer': self.optimizer.state_dict(),
             'train_args': vars(self.args),  # save as dict
             'date': datetime.now().isoformat(),
             'version': __version__}
+        if hasattr(self.model, 'detail_model'):
+            ckpt['detail_model'] = self.model.detail_model.state_dict()
+        if hasattr(self.model, 'detail_encoder'):
+            ckpt['detail_encoder'] = self.model.detail_encoder.state_dict()
+        if hasattr(self.model, 'global_local_fusion'):
+            ckpt['global_local_fusion'] = self.model.global_local_fusion.state_dict()
+        if hasattr(self.model, 'gl_fusion_config'):
+            ckpt['gl_fusion_config'] = deepcopy(self.model.gl_fusion_config)
+        if hasattr(self.model, 'zip_direct_fusion'):
+            ckpt['zip_direct_fusion'] = self.model.zip_direct_fusion.state_dict()
+        if hasattr(self.model, 'zip_bgd_config'):
+            ckpt['zip_bgd_config'] = deepcopy(self.model.zip_bgd_config)
 
-        # Use dill (if exists) to serialize the lambda functions where pickle does not do this
-        try:
-            import dill as pickle
-        except ImportError:
-            import pickle
-
-        # Save last, best and delete
-        # torch.save(ckpt, self.last, pickle_module=pickle)
+        # This checkpoint contains state dictionaries and a regular nn.Module,
+        # so the standard torch serializer is sufficient and deterministic.
+        # In particular, do not reuse a legacy dill compatibility shim that may
+        # have been needed only while loading an old pretrained checkpoint.
         torch.save(ckpt, self.last)
         if self.best_fitness == self.fitness:
-            torch.save(ckpt, self.best, pickle_module=pickle)
+            torch.save(ckpt, self.best)
         if (self.epoch > 0) and (self.save_period > 0) and (self.epoch % self.save_period == 0):
-            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt', pickle_module=pickle)
+            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt')
         del ckpt
 
     @staticmethod
@@ -466,7 +473,7 @@ class BaseTrainer:
         load/create/download model for any task.
         """
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
-            return
+            return getattr(self, 'resume_ckpt', None)
 
         model, weights = self.model, None
         ckpt = None
@@ -584,6 +591,9 @@ class BaseTrainer:
         resume = self.args.resume
         if resume:
             try:
+                # Resource-only overrides are safe to change on resume and are
+                # needed when a prior run was interrupted by host-memory OOM.
+                requested_workers = self.args.workers
                 exists = isinstance(resume, (str, Path)) and Path(resume).exists()
                 last = Path(check_file(resume) if exists else get_latest_run())
 
@@ -593,6 +603,7 @@ class BaseTrainer:
                     ckpt_args['data'] = self.args.data
 
                 self.args = get_cfg(ckpt_args)
+                self.args.workers = requested_workers
                 self.args.model, resume = str(last), True  # reinstate
             except Exception as e:
                 raise FileNotFoundError('Resume checkpoint not found. Please pass a valid checkpoint to resume from, '
@@ -650,6 +661,22 @@ class BaseTrainer:
         """
 
         g = [], [], []  # optimizer parameter groups
+        scene_g = [], [], []
+        content_g = [], [], []
+        zip_quality_g = [], [], []
+        scene_lr_multiplier = float(
+            getattr(model, 'candidate_roi_config', {}).get(
+                'scene_lr_multiplier', 1.0
+            )
+        )
+        content_lr_multiplier = float(
+            getattr(model, 'candidate_roi_config', {}).get(
+                'content_lr_multiplier', scene_lr_multiplier
+            )
+        )
+        zip_quality_lr_multiplier = float(
+            getattr(model, 'zip_bgd_config', {}).get('quality_lr_multiplier', 1.0)
+        )
         bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
         if name == 'auto':
             nc = getattr(model, 'nc', 10)  # number of classes
@@ -660,12 +687,30 @@ class BaseTrainer:
         for module_name, module in model.named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f'{module_name}.{param_name}' if module_name else param_name
+                if zip_quality_lr_multiplier != 1.0 and fullname.startswith('zip_rescue_fusion.'):
+                    target_groups = zip_quality_g
+                elif (
+                    fullname.startswith((
+                        'candidate_roi_fusion.dual_content_',
+                        'candidate_roi_fusion.dual_role_',
+                        'candidate_roi_fusion.dual_shared_',
+                    ))
+                    and content_lr_multiplier != scene_lr_multiplier
+                ):
+                    target_groups = content_g
+                elif scene_lr_multiplier != 1.0 and (
+                    fullname.startswith('candidate_roi_fusion.')
+                    or fullname.startswith('detail_model.')
+                ):
+                    target_groups = scene_g
+                else:
+                    target_groups = g
                 if 'bias' in fullname:  # bias (no decay)
-                    g[2].append(param)
+                    target_groups[2].append(param)
                 elif isinstance(module, bn):  # weight (no decay)
-                    g[1].append(param)
+                    target_groups[1].append(param)
                 else:  # weight (with decay)
-                    g[0].append(param)
+                    target_groups[0].append(param)
 
         if name in ('Adam', 'Adamax', 'AdamW', 'NAdam', 'RAdam'):
             optimizer = getattr(optim, name, optim.Adam)(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
@@ -681,7 +726,58 @@ class BaseTrainer:
 
         optimizer.add_param_group({'params': g[0], 'weight_decay': decay})  # add g0 with weight_decay
         optimizer.add_param_group({'params': g[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
+        scene_lr = lr * scene_lr_multiplier
+        if scene_g[2]:
+            optimizer.add_param_group({
+                'params': scene_g[2], 'lr': scene_lr, 'weight_decay': 0.0
+            })
+        if scene_g[0]:
+            optimizer.add_param_group({
+                'params': scene_g[0], 'lr': scene_lr, 'weight_decay': decay
+            })
+        if scene_g[1]:
+            optimizer.add_param_group({
+                'params': scene_g[1], 'lr': scene_lr, 'weight_decay': 0.0
+            })
+        content_lr = lr * content_lr_multiplier
+        if content_g[2]:
+            optimizer.add_param_group({
+                'params': content_g[2], 'lr': content_lr, 'weight_decay': 0.0
+            })
+        if content_g[0]:
+            optimizer.add_param_group({
+                'params': content_g[0], 'lr': content_lr, 'weight_decay': decay
+            })
+        if content_g[1]:
+            optimizer.add_param_group({
+                'params': content_g[1], 'lr': content_lr, 'weight_decay': 0.0
+            })
+        zip_quality_lr = lr * zip_quality_lr_multiplier
+        if zip_quality_g[2]:
+            optimizer.add_param_group({
+                'params': zip_quality_g[2], 'lr': zip_quality_lr, 'weight_decay': 0.0
+            })
+        if zip_quality_g[0]:
+            optimizer.add_param_group({
+                'params': zip_quality_g[0], 'lr': zip_quality_lr, 'weight_decay': decay
+            })
+        if zip_quality_g[1]:
+            optimizer.add_param_group({
+                'params': zip_quality_g[1], 'lr': zip_quality_lr, 'weight_decay': 0.0
+            })
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
-            f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)')
+            f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)'
+            + (
+                f', candidate expert lr={scene_lr} ({scene_lr_multiplier:g}x)'
+                if any(scene_g) else ''
+            )
+            + (
+                f', signed content lr={content_lr} ({content_lr_multiplier:g}x)'
+                if any(content_g) else ''
+            )
+            + (
+                f', ZIP quality lr={zip_quality_lr} ({zip_quality_lr_multiplier:g}x)'
+                if any(zip_quality_g) else ''
+            ))
         return optimizer

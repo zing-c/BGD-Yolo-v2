@@ -1,8 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import builtins
 from copy import deepcopy
 from pathlib import Path
+import sys
+import types
 
 import timm
 import torch
@@ -232,7 +235,289 @@ class BaseModel(nn.Module):
         """
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()
-        return self.criterion(self.predict(batch['img']) if preds is None else preds, batch)
+        # Fusion paths need the unmodified batch metadata to map Grad-CAM
+        # screenshots back to original images and to build candidate targets.
+        # Keep it only for the duration of the forward/loss call so checkpoints
+        # never retain a transient accelerator batch.
+        self.batch = batch
+        try:
+            total_loss, loss_items = self.criterion(self.predict(batch['img']) if preds is None else preds, batch)
+        finally:
+            if hasattr(self, 'batch'):
+                delattr(self, 'batch')
+
+        # Global-local fusion V2 learns whether a selected crop actually covers
+        # a ground-truth object.  Keep this auxiliary objective outside the
+        # detector criterion so the standard three detection loss items and
+        # their logging remain checkpoint-compatible.
+        gl_config = getattr(self, 'gl_fusion_config', {})
+        gl_aux_loss = getattr(self, 'gl_aux_loss', None)
+        if (
+            self.training
+            and gl_config.get('method') in (
+                'v2', 'v3', 'gradcam_global_local_v2', 'gradcam_global_local_v3'
+            )
+            and gl_aux_loss is not None
+            and torch.is_tensor(gl_aux_loss)
+        ):
+            total_loss = total_loss + (
+                float(gl_config.get('aux_weight', 0.2))
+                * gl_aux_loss
+                * batch['img'].shape[0]
+            )
+        zip_config = getattr(self, 'zip_bgd_config', {})
+        zip_aux_loss = getattr(self, 'zip_bgd_aux_loss', None)
+        if (
+            self.training
+            and zip_config.get('method') in (
+                'zip_bgd_pretrained_semantic_score_aux_d12_v7',
+                'zip_bgd_one_sided_quality_rescue_d12_v8',
+                'zip_bgd_dense_distilled_grouped_rescue_d12_v9',
+                'zip_bgd_boundary_calibrated_grouped_rescue_d12_v10',
+                'zip_bgd_deployment_hard_negative_rescue_d12_v11',
+                'zip_bgd_global_bce_hard_pairwise_rescue_d12_v12',
+            )
+            and zip_aux_loss is not None
+            and torch.is_tensor(zip_aux_loss)
+        ):
+            total_loss = total_loss + (
+                float(zip_config.get('detail_aux_weight', 0.5))
+                * zip_aux_loss
+                * batch['img'].shape[0]
+            )
+        zip_quality_loss = getattr(self, 'zip_bgd_quality_aux_loss', None)
+        if (
+            self.training
+            and zip_config.get('method') in (
+                'zip_bgd_one_sided_quality_rescue_d12_v8',
+                'zip_bgd_dense_distilled_grouped_rescue_d12_v9',
+                'zip_bgd_boundary_calibrated_grouped_rescue_d12_v10',
+                'zip_bgd_deployment_hard_negative_rescue_d12_v11',
+                'zip_bgd_global_bce_hard_pairwise_rescue_d12_v12',
+            )
+            and zip_quality_loss is not None
+            and torch.is_tensor(zip_quality_loss)
+        ):
+            total_loss = total_loss + (
+                float(zip_config.get('quality_aux_weight', 1.0))
+                * zip_quality_loss
+                * batch['img'].shape[0]
+            )
+        zip_filter_loss = getattr(self, 'zip_bgd_filter_aux_loss', None)
+        if (
+            self.training
+            and zip_filter_loss is not None
+            and torch.is_tensor(zip_filter_loss)
+            and float(zip_config.get('filter_aux_weight', 0.0)) > 0
+        ):
+            total_loss = total_loss + (
+                float(zip_config.get('filter_aux_weight', 1.0))
+                * zip_filter_loss
+                * batch['img'].shape[0]
+            )
+        zip_preserve_strength = float(zip_config.get('preserve_teacher_strength', 0.0))
+        zip_dense_strength = float(zip_config.get('dense_distill_strength', 0.0))
+        zip_student_raw = getattr(self, 'zip_bgd_student_raw', None)
+        zip_base_raw = getattr(self, 'zip_bgd_base_raw', None)
+        if (
+            self.training and (zip_preserve_strength > 0 or zip_dense_strength > 0)
+            and isinstance(zip_student_raw, (list, tuple))
+        ):
+            from zip_bgd_fusion import get_zip_bgd_teacher
+            zip_teacher = get_zip_bgd_teacher(self)
+            if zip_teacher is None:
+                raise RuntimeError('ZIP baseline-preservation teacher is not registered')
+            zip_teacher_parameter = next(zip_teacher.parameters())
+            if zip_teacher_parameter.device != batch['img'].device:
+                zip_teacher.to(batch['img'].device)
+            zip_teacher.eval()
+            with torch.no_grad():
+                teacher_output = zip_teacher.predict(batch['img'])
+                zip_teacher_raw = teacher_output[1] if isinstance(teacher_output, tuple) else teacher_output
+            regression_channels = int(self.model[-1].reg_max * 4)
+            preserve_terms = []
+            dense_terms = []
+            for level_index, (student_level, teacher_level) in enumerate(zip(zip_student_raw, zip_teacher_raw)):
+                teacher_level = teacher_level.to(device=student_level.device, dtype=student_level.dtype)
+                teacher_probability = teacher_level[:, regression_channels:].sigmoid()
+                teacher_confidence = teacher_probability.amax(1, keepdim=True)
+                preserve_mask = (
+                    teacher_confidence >= float(zip_config.get('deployment_conf', 0.5))
+                ).to(dtype=student_level.dtype)
+                normalizer = preserve_mask.sum().clamp_min(1)
+                classification_drop = torch.relu(
+                    teacher_level[:, regression_channels:] - student_level[:, regression_channels:]
+                ).square().mean(1, keepdim=True)
+                regression_drift = torch.nn.functional.smooth_l1_loss(
+                    student_level[:, :regression_channels],
+                    teacher_level[:, :regression_channels],
+                    reduction='none',
+                ).mean(1, keepdim=True)
+                preserve_terms.append(
+                    ((classification_drop + 0.5 * regression_drift) * preserve_mask).sum()
+                    / normalizer
+                )
+                if zip_dense_strength > 0 and isinstance(zip_base_raw, (list, tuple)):
+                    base_level = zip_base_raw[level_index]
+                    class_weight = (0.02 + teacher_confidence).detach()
+                    dense_classification = torch.nn.functional.binary_cross_entropy_with_logits(
+                        base_level[:, regression_channels:], teacher_probability.detach(), reduction='none'
+                    )
+                    dense_classification = (
+                        dense_classification * class_weight
+                    ).sum() / (
+                        class_weight.sum() * dense_classification.shape[1]
+                    ).clamp_min(1)
+                    regression_weight = teacher_confidence.detach()
+                    dense_regression = torch.nn.functional.smooth_l1_loss(
+                        base_level[:, :regression_channels],
+                        teacher_level[:, :regression_channels].detach(),
+                        reduction='none',
+                    ).mean(1, keepdim=True)
+                    dense_regression = (
+                        dense_regression * regression_weight
+                    ).sum() / regression_weight.sum().clamp_min(1)
+                    dense_terms.append(dense_classification + 0.5 * dense_regression)
+            if zip_preserve_strength > 0 and preserve_terms:
+                total_loss = total_loss + (
+                    zip_preserve_strength * torch.stack(preserve_terms).mean() * batch['img'].shape[0]
+                )
+            if zip_dense_strength > 0 and dense_terms:
+                zip_dense_loss = torch.stack(dense_terms).mean()
+                total_loss = total_loss + (
+                    zip_dense_strength * zip_dense_loss * batch['img'].shape[0]
+                )
+                self.zip_bgd_dense_distill_loss = zip_dense_loss.detach()
+        candidate_config = getattr(self, 'candidate_roi_config', {})
+        candidate_aux_loss = getattr(self, 'candidate_roi_aux_loss', None)
+        if (
+            self.training
+            and str(candidate_config.get('method', '')).startswith('gradcam_detail_candidate_roi_')
+            and candidate_aux_loss is not None
+            and torch.is_tensor(candidate_aux_loss)
+        ):
+            total_loss = total_loss + (
+                float(candidate_config.get('aux_weight', 0.5))
+                * candidate_aux_loss
+                * batch['img'].shape[0]
+            )
+        teacher = None
+        distill_strength = float(candidate_config.get('distill_strength', 0.0))
+        boundary_distill_strength = float(
+            candidate_config.get('boundary_distill_strength', 0.0)
+        )
+        if distill_strength > 0 or boundary_distill_strength > 0:
+            # Imported lazily to avoid a module-import cycle.  The teacher is
+            # held outside the student module tree so it is never serialized
+            # into or counted as part of the deployable checkpoint.
+            from candidate_roi_fusion import get_candidate_roi_teacher
+            teacher = get_candidate_roi_teacher(self)
+        student_raw = getattr(self, 'candidate_roi_base_raw', None)
+        if (
+            self.training and teacher is not None
+            and (distill_strength > 0 or boundary_distill_strength > 0)
+            and isinstance(student_raw, (list, tuple))
+        ):
+            teacher_parameter = next(teacher.parameters())
+            if teacher_parameter.device != batch['img'].device:
+                teacher.to(batch['img'].device)
+            teacher.eval()
+            with torch.no_grad():
+                teacher_output = teacher.predict(batch['img'])
+                teacher_raw = (
+                    teacher_output[1]
+                    if isinstance(teacher_output, tuple) else teacher_output
+                )
+            if not isinstance(teacher_raw, (list, tuple)) or len(teacher_raw) != len(student_raw):
+                raise RuntimeError('Teacher/student raw detection outputs are incompatible')
+            regression_channels = int(self.model[-1].reg_max * 4)
+            distill_terms = []
+            boundary_terms = []
+            for student_level, teacher_level in zip(student_raw, teacher_raw):
+                teacher_level = teacher_level.to(
+                    device=student_level.device, dtype=student_level.dtype
+                )
+                teacher_probability = teacher_level[:, regression_channels:].sigmoid()
+                # Preserve deployment-relevant high-confidence anchors most
+                # strongly while retaining a small dense background signal.
+                anchor_weight = (0.05 + teacher_probability.amax(1, keepdim=True)).detach()
+                classification = torch.nn.functional.binary_cross_entropy_with_logits(
+                    student_level[:, regression_channels:], teacher_probability,
+                    reduction='none',
+                )
+                classification = (
+                    classification * anchor_weight
+                ).sum() / anchor_weight.sum().clamp_min(1)
+                regression = torch.nn.functional.smooth_l1_loss(
+                    student_level[:, :regression_channels],
+                    teacher_level[:, :regression_channels],
+                    reduction='none',
+                ).mean(1, keepdim=True)
+                regression = (
+                    regression * anchor_weight
+                ).sum() / anchor_weight.sum().clamp_min(1)
+                distill_terms.append(classification + regression)
+                # Preserve only the teacher anchors that form the original
+                # deployed detector.  This is deliberately one-sided: a
+                # student may improve a teacher detection or promote a missed
+                # low-confidence anchor, but it is penalized for lowering an
+                # original high-confidence class logit or moving its DFL box.
+                # Unlike dense distillation, background anchors exert no
+                # constraint and therefore cannot suppress Detail-guided
+                # recall learning.
+                teacher_confidence, teacher_class = teacher_probability.max(
+                    1, keepdim=True
+                )
+                deployment_conf = float(candidate_config.get('deployment_conf', 0.5))
+                deployment_mask = (teacher_confidence >= deployment_conf).to(
+                    student_level.dtype
+                )
+                student_teacher_logit = student_level[
+                    :, regression_channels:
+                ].gather(1, teacher_class)
+                teacher_selected_logit = teacher_level[
+                    :, regression_channels:
+                ].gather(1, teacher_class)
+                confidence_deficit = torch.nn.functional.relu(
+                    teacher_selected_logit.detach() - student_teacher_logit
+                )
+                boundary_classification = (
+                    confidence_deficit.square()
+                    * deployment_mask
+                    * teacher_confidence.detach()
+                ).sum() / (
+                    deployment_mask * teacher_confidence.detach()
+                ).sum().clamp_min(1)
+                boundary_regression = torch.nn.functional.smooth_l1_loss(
+                    student_level[:, :regression_channels],
+                    teacher_level[:, :regression_channels],
+                    reduction='none',
+                ).mean(1, keepdim=True)
+                boundary_regression = (
+                    boundary_regression
+                    * deployment_mask
+                    * teacher_confidence.detach()
+                ).sum() / (
+                    deployment_mask * teacher_confidence.detach()
+                ).sum().clamp_min(1)
+                boundary_terms.append(boundary_classification + boundary_regression)
+            if distill_strength > 0:
+                distill_loss = torch.stack(distill_terms).mean()
+                total_loss = total_loss + (
+                    distill_strength * distill_loss * batch['img'].shape[0]
+                )
+                self.candidate_roi_distill_loss = distill_loss.detach()
+            if boundary_distill_strength > 0:
+                boundary_loss = torch.stack(boundary_terms).mean()
+                total_loss = total_loss + (
+                    boundary_distill_strength
+                    * boundary_loss
+                    * batch['img'].shape[0]
+                )
+                self.candidate_roi_boundary_distill_loss = boundary_loss.detach()
+        if hasattr(self, 'candidate_roi_base_raw'):
+            delattr(self, 'candidate_roi_base_raw')
+        return total_loss, loss_items
 
     def init_criterion(self):
         raise NotImplementedError('compute_loss() needs to be implemented by task heads')
@@ -269,6 +554,30 @@ class DetectionModel(BaseModel):
         if verbose:
             self.info()
             LOGGER.info('')
+
+    def gradcam_global_local_predict_once(self, x, profile=False, visualize=False):
+        """Run the optional global-local forward path with a pickle-stable method name."""
+        from gradcam_fusion import gradcam_global_local_predict_once
+
+        return gradcam_global_local_predict_once(self, x, profile, visualize)
+
+    def zip_bgd_predict_once(self, x, profile=False, visualize=False):
+        """Run the complete ZIP BGD path with a pickle-stable method name."""
+        from zip_bgd_fusion import zip_bgd_predict_once
+
+        return zip_bgd_predict_once(self, x, profile, visualize)
+
+    def bgd_318_grad_predict_once(self, x, profile=False, visualize=False):
+        """Keep Grad-CAM enabled for the best318-era EMA validation path."""
+        from experiments.run_318_fusion_alpha import grad_enabled_318_predict_once
+
+        return grad_enabled_318_predict_once(self, x, profile, visualize)
+
+    def candidate_roi_fusion_predict_once(self, x, profile=False, visualize=False):
+        """Run candidate-level Grad-CAM Detail/ROI fusion."""
+        from candidate_roi_fusion import candidate_roi_fusion_predict_once
+
+        return candidate_roi_fusion_predict_once(self, x, profile, visualize)
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs."""
@@ -533,6 +842,34 @@ def torch_safe_load(weight):
     try:
         return torch.load(file, map_location='cpu', weights_only=False), file  # load
     except ModuleNotFoundError as e:  # e.name is missing module name
+        if e.name == 'dill':
+            # Some locally trusted, stripped legacy checkpoints used dill only
+            # to serialize built-in container types (notably ``set``). Avoid a
+            # network install by providing the tiny unpickling shim they need.
+            # Remove the shim immediately after loading: leaving a partial dill
+            # module in sys.modules breaks later torch.save() version checks.
+            dill_module = types.ModuleType('dill')
+            dill_impl = types.ModuleType('dill._dill')
+            # Legacy dill checkpoints may reference runtime types such as
+            # MethodType/CodeType which live in ``types``, not ``builtins``.
+            dill_impl._load_type = lambda name: getattr(builtins, name, getattr(types, name, None))
+            dill_module._dill = dill_impl
+            missing = object()
+            previous_dill = sys.modules.get('dill', missing)
+            previous_dill_impl = sys.modules.get('dill._dill', missing)
+            try:
+                sys.modules['dill'] = dill_module
+                sys.modules['dill._dill'] = dill_impl
+                return torch.load(file, map_location='cpu', weights_only=False), file
+            finally:
+                if previous_dill is missing:
+                    sys.modules.pop('dill', None)
+                else:
+                    sys.modules['dill'] = previous_dill
+                if previous_dill_impl is missing:
+                    sys.modules.pop('dill._dill', None)
+                else:
+                    sys.modules['dill._dill'] = previous_dill_impl
         if e.name == 'models':
             raise TypeError(
                 emojis(f'ERROR ❌️ {weight} appears to be an Ultralytics YOLOv5 model originally trained '
@@ -546,7 +883,9 @@ def torch_safe_load(weight):
                        f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'")
         check_requirements(e.name)  # install missing module
 
-        return torch.load(file, map_location='cpu'), file  # load
+        # Checkpoints in this repository contain serialized nn.Module objects and
+        # predate PyTorch 2.6, whose default changed to weights_only=True.
+        return torch.load(file, map_location='cpu', weights_only=False), file  # load
 
 
 def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
@@ -566,7 +905,8 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
             model.stride = torch.tensor([32.])
 
         # Append
-        ensemble.append(model.fuse().eval() if fuse and hasattr(model, 'fuse') else model.eval())  # model in eval mode
+        safe_to_fuse = fuse and hasattr(model, 'fuse') and not getattr(model, 'is_gradcam_global_local', False)
+        ensemble.append(model.fuse().eval() if safe_to_fuse else model.eval())  # model in eval mode
 
     # Module compatibility updates
     for m in ensemble.modules():
@@ -602,7 +942,8 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     if not hasattr(model, 'stride'):
         model.stride = torch.tensor([32.])
 
-    model = model.fuse().eval() if fuse and hasattr(model, 'fuse') else model.eval()  # model in eval mode
+    safe_to_fuse = fuse and hasattr(model, 'fuse') and not getattr(model, 'is_gradcam_global_local', False)
+    model = model.fuse().eval() if safe_to_fuse else model.eval()  # model in eval mode
 
     # Module compatibility updates
     for m in model.modules():

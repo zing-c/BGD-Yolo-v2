@@ -1,0 +1,7 @@
+path: /home/user/projects/czy/mydata
+train: images/train
+val: images/val
+test: images/test
+
+nc: 1
+names: ['Broken glass']

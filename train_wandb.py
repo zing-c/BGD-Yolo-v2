@@ -5,7 +5,7 @@ from val import BGD_YOLO
 if __name__ == "__main__":
     # --- 1. 统一配置超参数 ---
     # 将训练参数和自定义的模型参数整合在一个字典中
-    #exp3_4_1.pt   数据集加入负样本
+    # ZIP compressed Detail revision with dilation repaired for 4x4 features.
     hyp_params = {
         "data": "/home/bme-2020/czy/yolov10/data.yaml",
         "lr0": 0.001,
@@ -14,7 +14,7 @@ if __name__ == "__main__":
         "epochs": 40,
         "workers": 0,
         "detail_conf_threshold": 0.5,
-        "detail_weight":'run/detail_net_atten/exp3_4_1.pt',
+        "detail_weight":'run/detail_net_atten/zip_compressed_d12_v1.pt',
         "yolo_weight":'/home/bme-2020/czy/BGD-Yolo_v2/runs/yolo/train10/weights/best.pt',
         "project_path": "yolo-runs/bgd",
         "experiment_name": "bgd(detail_conf=0.5)"
