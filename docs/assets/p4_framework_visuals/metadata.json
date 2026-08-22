@@ -1,0 +1,47 @@
+{
+  "source_image": "mydata/images/test/00456.jpg",
+  "source_label": "mydata/labels/test/00456.txt",
+  "checkpoint": "experiments/runs/best318_mid_p4_detectconv_learnable_alpha_init05_e50_lr1e4_r2/weights/best.pt",
+  "selected_ground_truth_xyxy": [
+    128.0,
+    266.0,
+    738.0,
+    1062.0
+  ],
+  "selected_candidate_xyxy": [
+    125.9479751586914,
+    264.17193603515625,
+    740.8358154296875,
+    1059.4024658203125
+  ],
+  "selected_candidate_iou": 0.9865734577178955,
+  "selected_gradcam_centre_xy": [
+    157.9140625,
+    296.2250061035156
+  ],
+  "candidate_count": 10,
+  "final_detection_count_conf_0_5_iou_0_5": 1,
+  "candidate_conf": 0.2,
+  "head": "P4/mid",
+  "hook": "Detect.cv3[1][1]",
+  "detail_crop_shape": [
+    3,
+    64,
+    64
+  ],
+  "detail_feature_shape": [
+    3,
+    4,
+    4
+  ],
+  "p4_activation_shape": [
+    64,
+    40,
+    40
+  ],
+  "fused_activation_shape": [
+    64,
+    40,
+    40
+  ]
+}
