@@ -276,34 +276,118 @@ def match_metrics(gt: np.ndarray, boxes: np.ndarray) -> dict:
     }
 
 
+def detection_counts(gt: np.ndarray, boxes: np.ndarray, threshold: float = 0.5) -> dict:
+    """Greedily assign predictions to GT so TP/FP corrections are explicit."""
+    assignments = ["FP"] * len(boxes)
+    if len(gt) and len(boxes):
+        overlaps = np.stack([box_iou_one_to_many(item, boxes[:, :4]) for item in gt])
+        available_gt = set(range(len(gt)))
+        available_predictions = set(range(len(boxes)))
+        while available_gt and available_predictions:
+            best = max(
+                (
+                    (float(overlaps[gt_index, prediction_index]), gt_index, prediction_index)
+                    for gt_index in available_gt
+                    for prediction_index in available_predictions
+                ),
+                default=(0.0, -1, -1),
+            )
+            if best[0] < threshold:
+                break
+            _, gt_index, prediction_index = best
+            assignments[prediction_index] = "TP"
+            available_gt.remove(gt_index)
+            available_predictions.remove(prediction_index)
+    tp = assignments.count("TP")
+    return {
+        "tp": tp,
+        "fp": len(boxes) - tp,
+        "fn": len(gt) - tp,
+        "prediction_assignments": assignments,
+    }
+
+
+def annotation_scale(image: np.ndarray) -> float:
+    """Keep lines and labels bold after high-resolution figures are downscaled."""
+    return max(1.0, min(image.shape[:2]) / 1200.0)
+
+
 def draw_boxes(
     image: np.ndarray,
     boxes: np.ndarray,
     color: tuple[int, int, int],
     prefix: str,
-    thickness: int = 5,
+    thickness: int = 9,
 ) -> np.ndarray:
     result = image.copy()
+    scale = annotation_scale(image)
+    line_width = max(5, int(round(thickness * scale)))
     for index, box in enumerate(boxes):
         xyxy = tuple(int(round(value)) for value in box[:4])
         label = prefix
         if len(box) > 4:
             label = f"{prefix} {float(box[4]):.3f}"
-        cv2.rectangle(result, xyxy[:2], xyxy[2:], color, thickness)
+        cv2.rectangle(result, xyxy[:2], xyxy[2:], color, line_width)
         cv2.putText(
             result,
             label,
             (xyxy[0], max(30, xyxy[1] - 12)),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.82,
+            1.12 * scale,
             color,
-            2,
+            max(3, int(round(4 * scale))),
         )
     return result
 
 
+def draw_detection_result(
+    image: np.ndarray,
+    ground_truth: np.ndarray,
+    predictions: np.ndarray,
+    iou_threshold: float,
+) -> tuple[np.ndarray, dict]:
+    """Draw thick GT halos plus green TP and red FP boxes."""
+    result = image.copy()
+    scale = annotation_scale(image)
+    gt_width = max(10, int(round(15 * scale)))
+    prediction_width = max(6, int(round(8 * scale)))
+    font_scale = 1.15 * scale
+    font_width = max(3, int(round(4 * scale)))
+    counts = detection_counts(ground_truth, predictions, iou_threshold)
+
+    for index, box in enumerate(ground_truth, 1):
+        xyxy = tuple(int(round(value)) for value in box[:4])
+        cv2.rectangle(result, xyxy[:2], xyxy[2:], (0, 220, 255), gt_width)
+        cv2.putText(
+            result,
+            f"GT {index}",
+            (xyxy[0], min(image.shape[0] - 18, xyxy[1] + int(round(52 * scale)))),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            font_scale,
+            (0, 170, 210),
+            font_width,
+        )
+
+    for index, (box, assignment) in enumerate(
+        zip(predictions, counts["prediction_assignments"]), 1
+    ):
+        xyxy = tuple(int(round(value)) for value in box[:4])
+        color = (40, 185, 40) if assignment == "TP" else (36, 70, 220)
+        cv2.rectangle(result, xyxy[:2], xyxy[2:], color, prediction_width)
+        cv2.putText(
+            result,
+            f"{assignment} {float(box[4]):.3f}",
+            (xyxy[0], max(int(round(42 * scale)), xyxy[1] - int(round(18 * scale)))),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            font_scale,
+            color,
+            font_width,
+        )
+    return result, counts
+
+
 def title_panel(image: np.ndarray, title: str, subtitle: str, width: int = 660) -> np.ndarray:
-    header = 86
+    header = 112
     scale = width / image.shape[1]
     resized = cv2.resize(
         image,
@@ -312,8 +396,8 @@ def title_panel(image: np.ndarray, title: str, subtitle: str, width: int = 660) 
     )
     canvas = np.full((resized.shape[0] + header, width, 3), 255, dtype=np.uint8)
     canvas[header:] = resized
-    cv2.putText(canvas, title, (16, 32), cv2.FONT_HERSHEY_SIMPLEX, 0.82, (25, 25, 25), 2)
-    cv2.putText(canvas, subtitle, (16, 67), cv2.FONT_HERSHEY_SIMPLEX, 0.58, (65, 65, 65), 2)
+    cv2.putText(canvas, title, (18, 42), cv2.FONT_HERSHEY_SIMPLEX, 0.92, (25, 25, 25), 3)
+    cv2.putText(canvas, subtitle, (18, 88), cv2.FONT_HERSHEY_SIMPLEX, 0.68, (65, 65, 65), 2)
     return canvas
 
 
@@ -405,6 +489,10 @@ def main() -> None:
     cv2.imwrite(str(output / "02_ground_truth.jpg"), gt_image)
 
     candidate_image = original.copy()
+    figure_scale = annotation_scale(original)
+    candidate_line_width = max(7, int(round(9 * figure_scale)))
+    candidate_font_scale = 1.08 * figure_scale
+    candidate_font_width = max(3, int(round(4 * figure_scale)))
     palette = [
         (26, 46, 220), (230, 90, 25), (180, 35, 180), (30, 170, 220),
         (200, 120, 20), (30, 160, 90), (150, 80, 210), (80, 80, 230),
@@ -412,18 +500,32 @@ def main() -> None:
     for index, (box, centre) in enumerate(zip(candidate_rows, centres), 1):
         color = palette[(index - 1) % len(palette)]
         xyxy = tuple(int(round(value)) for value in box[:4])
-        cv2.rectangle(candidate_image, xyxy[:2], xyxy[2:], color, 4)
-        cv2.circle(candidate_image, tuple(int(round(v)) for v in centre), 8, (0, 235, 255), -1)
+        cv2.rectangle(
+            candidate_image, xyxy[:2], xyxy[2:], color, candidate_line_width
+        )
+        cv2.circle(
+            candidate_image,
+            tuple(int(round(v)) for v in centre),
+            max(11, int(round(14 * figure_scale))),
+            (0, 235, 255),
+            -1,
+        )
         cv2.putText(
             candidate_image,
-            f"C{index:02d} {box[4]:.3f}",
-            (xyxy[0], max(28, xyxy[1] - 10 + 25 * ((index - 1) % 3))),
+            f"C{index:02d}",
+            (
+                xyxy[0] + int(round(24 * figure_scale)),
+                max(
+                    int(round(42 * figure_scale)),
+                    xyxy[1] - int(round((22 + (index - 1) * 52) * figure_scale)),
+                ),
+            ),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.7,
+            candidate_font_scale,
             color,
-            2,
+            candidate_font_width,
         )
-    legend_width = 700
+    legend_width = max(700, int(round(760 * figure_scale)))
     candidate_with_legend = np.full(
         (height, width + legend_width, 3), 255, dtype=np.uint8
     )
@@ -433,40 +535,53 @@ def main() -> None:
         f"All {len(candidate_rows)} raw candidates: conf > {args.candidate_conf}",
         (width + 24, 56),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.82,
+        1.00 * figure_scale,
         (25, 25, 25),
-        2,
+        max(3, int(round(4 * figure_scale))),
     )
     for index, box in enumerate(candidate_rows, 1):
         color = palette[(index - 1) % len(palette)]
-        y = 120 + (index - 1) * 90
-        cv2.rectangle(candidate_with_legend, (width + 28, y - 20), (width + 58, y + 10), color, -1)
+        y = int(round((120 + (index - 1) * 104) * figure_scale))
+        marker = max(30, int(round(36 * figure_scale)))
+        cv2.rectangle(
+            candidate_with_legend,
+            (width + 28, y - marker),
+            (width + 28 + marker, y),
+            color,
+            -1,
+        )
         cv2.putText(
             candidate_with_legend,
             f"C{index:02d}  conf={box[4]:.4f}",
-            (width + 74, y),
+            (width + 82, y),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.72,
+            0.88 * figure_scale,
             (30, 30, 30),
-            2,
+            max(3, int(round(3 * figure_scale))),
         )
         cv2.putText(
             candidate_with_legend,
             f"xyxy=({box[0]:.1f}, {box[1]:.1f}, {box[2]:.1f}, {box[3]:.1f})",
-            (width + 74, y + 34),
+            (width + 82, y + int(round(42 * figure_scale))),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.48,
+            0.58 * figure_scale,
             (70, 70, 70),
-            1,
+            max(2, int(round(2 * figure_scale))),
         )
     cv2.putText(
         candidate_with_legend,
         "Overlapping anchors share the same Grad-CAM crop center.",
-        (width + 24, min(height - 50, 120 + len(candidate_rows) * 90 + 40)),
+        (
+            width + 24,
+            min(
+                height - 50,
+                int(round((120 + len(candidate_rows) * 104 + 55) * figure_scale)),
+            ),
+        ),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.50,
+        0.62 * figure_scale,
         (70, 70, 70),
-        1,
+        max(2, int(round(2 * figure_scale))),
     )
     cv2.imwrite(
         str(output / "03_all_candidates_conf_gt_0_2.jpg"), candidate_with_legend
@@ -481,10 +596,32 @@ def main() -> None:
     cam_overlay = cv2.addWeighted(original, 0.52, colored_cam, 0.48, 0)
     for index, (box, centre) in enumerate(zip(candidate_rows, centres), 1):
         xyxy = tuple(int(round(value)) for value in box[:4])
-        cv2.rectangle(cam_overlay, xyxy[:2], xyxy[2:], (255, 255, 255), 3)
+        cv2.rectangle(
+            cam_overlay, xyxy[:2], xyxy[2:], (255, 255, 255), candidate_line_width
+        )
         point = tuple(int(round(value)) for value in centre)
-        cv2.circle(cam_overlay, point, 8, (0, 255, 255), -1)
-        cv2.putText(cam_overlay, f"C{index:02d}", point, cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 0, 0), 2)
+        cv2.circle(
+            cam_overlay,
+            point,
+            max(11, int(round(14 * figure_scale))),
+            (0, 255, 255),
+            -1,
+        )
+        cv2.putText(
+            cam_overlay,
+            f"C{index:02d}",
+            (
+                point[0] + int(round(24 * figure_scale)),
+                max(
+                    int(round(42 * figure_scale)),
+                    point[1] - int(round((18 + (index - 1) * 52) * figure_scale)),
+                ),
+            ),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            candidate_font_scale,
+            (0, 0, 0),
+            candidate_font_width,
+        )
     cv2.imwrite(str(output / "04_p4_gradcam_all_candidates.jpg"), cam_overlay)
     cv2.imwrite(str(output / "05_p4_gradcam_heatmap.png"), normalize_uint8(cam_original))
 
@@ -549,8 +686,12 @@ def main() -> None:
     cv2.imwrite(str(output / "08_p4_activation_mean.png"), p4_map)
     cv2.imwrite(str(output / "09_fused_activation_mean.png"), fused_map)
 
-    baseline_image = draw_boxes(original, baseline, (36, 70, 220), "Baseline")
-    method_image = draw_boxes(original, method, (40, 185, 40), "Ours P4")
+    baseline_image, baseline_counts = draw_detection_result(
+        original, ground_truth, baseline, args.iou
+    )
+    method_image, method_counts = draw_detection_result(
+        original, ground_truth, method, args.iou
+    )
     cv2.imwrite(str(output / "10_baseline_best318_final.jpg"), baseline_image)
     cv2.imwrite(str(output / "11_ours_p4_final.jpg"), method_image)
     baseline_metrics = match_metrics(ground_truth, baseline)
@@ -558,12 +699,18 @@ def main() -> None:
     baseline_panel = title_panel(
         baseline_image,
         "Baseline: best318.pt",
-        f"conf={baseline_metrics['matched_confidence']:.3f}  IoU={baseline_metrics['best_iou']:.3f}",
+        (
+            f"TP={baseline_counts['tp']} FP={baseline_counts['fp']} FN={baseline_counts['fn']}  "
+            f"IoU={baseline_metrics['best_iou']:.3f}"
+        ),
     )
     method_panel = title_panel(
         method_image,
         "Ours: P4 Grad-CAM + Detail Fusion",
-        f"conf={method_metrics['matched_confidence']:.3f}  IoU={method_metrics['best_iou']:.3f}",
+        (
+            f"TP={method_counts['tp']} FP={method_counts['fp']} FN={method_counts['fn']}  "
+            f"IoU={method_metrics['best_iou']:.3f}"
+        ),
     )
     comparison = np.concatenate([baseline_panel, method_panel], axis=1)
     cv2.imwrite(str(output / "12_baseline_vs_ours_comparison.jpg"), comparison)
@@ -572,7 +719,12 @@ def main() -> None:
         title_panel(original, "Input", "Exterior broken window", 360),
         title_panel(candidate_image, "Candidates", f"all {len(candidate_rows)} boxes: conf>0.2", 360),
         title_panel(cam_overlay, "P4 Grad-CAM", "yellow dots: crop centers", 360),
-        title_panel(method_image, "Final result", f"conf={method_metrics['matched_confidence']:.3f}", 360),
+        title_panel(
+            method_image,
+            "Final result",
+            f"TP={method_counts['tp']} FP={method_counts['fp']} conf={method_metrics['matched_confidence']:.3f}",
+            360,
+        ),
     ]
     minimum_height = min(panel.shape[0] for panel in flow_panels)
     flow_panels = [panel[:minimum_height] for panel in flow_panels]
@@ -601,6 +753,8 @@ def main() -> None:
         "method_final_boxes": method.tolist(),
         "baseline_metrics": baseline_metrics,
         "method_metrics": method_metrics,
+        "baseline_detection_counts": baseline_counts,
+        "method_detection_counts": method_counts,
         "improvement": {
             "confidence_absolute": method_metrics["matched_confidence"]
             - baseline_metrics["matched_confidence"],
