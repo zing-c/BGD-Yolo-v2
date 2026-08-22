@@ -162,6 +162,7 @@ GitHub Release：[best318-gradcam-heads-20260821](https://github.com/zing-c/BGD-
 
 ## 代码位置
 
+- P4 可学习 alpha 结构图细节与生成 Prompt：[P4_LEARNABLE_ALPHA_DETAIL_FUSION_ARCHITECTURE.md](P4_LEARNABLE_ALPHA_DETAIL_FUSION_ARCHITECTURE.md)
 - 单头实验归档分支：[archive/best318-gradcam-heads-20260821](https://github.com/zing-c/BGD-Yolo-v2/tree/archive/best318-gradcam-heads-20260821)
 - 多头无 alpha 实验分支：[experiment/best318-multihead-direct](https://github.com/zing-c/BGD-Yolo-v2/tree/experiment/best318-multihead-direct)
 - 主要运行脚本：`experiments/run_318_fusion_alpha.py`
