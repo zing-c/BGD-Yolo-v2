@@ -386,6 +386,30 @@ class BaseTrainer:
 
                 if self.args.val or final_epoch:
                     self.metrics, self.fitness = self.validate()
+                alpha_parameter = getattr(self.model, 'fusion_alpha_logit_bias', None)
+                if alpha_parameter is not None:
+                    train_alpha = float(torch.sigmoid(alpha_parameter.detach().float()).cpu())
+                    ema_model = getattr(self.ema, 'ema', None) if self.ema is not None else None
+                    ema_parameter = getattr(ema_model, 'fusion_alpha_logit_bias', None)
+                    ema_alpha = (
+                        float(torch.sigmoid(ema_parameter.detach().float()).cpu())
+                        if ema_parameter is not None else train_alpha
+                    )
+                    for current_model, current_alpha in (
+                        (self.model, train_alpha),
+                        (ema_model, ema_alpha),
+                    ):
+                        config = getattr(current_model, 'bgd_318_alpha_config', None)
+                        if isinstance(config, dict):
+                            config['fusion_alpha_current'] = current_alpha
+                    self.metrics.update({
+                        'fusion/alpha_train': train_alpha,
+                        'fusion/alpha_ema': ema_alpha,
+                    })
+                    LOGGER.info(
+                        f'LEARNABLE_ALPHA epoch={epoch + 1} '
+                        f'train={train_alpha:.8f} ema={ema_alpha:.8f}'
+                    )
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
                 self.stop = self.stopper(epoch + 1, self.fitness)
 

@@ -463,35 +463,6 @@ def print_configuration(args: argparse.Namespace, model) -> None:
     }, sort_keys=True))
 
 
-def register_learnable_alpha_logging(model, wandb_run) -> None:
-    """Log train/EMA alpha and copy the latest values into checkpoint metadata."""
-    if not hasattr(model.model, "fusion_alpha_logit_bias"):
-        return
-
-    def log_alpha(trainer) -> None:
-        train_alpha = learnable_alpha_value(trainer.model)
-        ema_model = getattr(getattr(trainer, "ema", None), "ema", None)
-        ema_alpha = learnable_alpha_value(ema_model) if ema_model is not None else None
-        for current_model, current_alpha in (
-            (trainer.model, train_alpha),
-            (ema_model, ema_alpha),
-        ):
-            config = getattr(current_model, "bgd_318_alpha_config", None)
-            if isinstance(config, dict) and current_alpha is not None:
-                config["fusion_alpha_current"] = current_alpha
-        print(
-            f"LEARNABLE_ALPHA epoch={trainer.epoch + 1} "
-            f"train={train_alpha:.8f} ema={ema_alpha:.8f}"
-        )
-        if wandb_run is not None:
-            wandb_run.log({
-                "fusion/alpha_train": train_alpha,
-                "fusion/alpha_ema": ema_alpha,
-            }, step=trainer.epoch + 1, commit=False)
-
-    model.add_callback("on_train_epoch_end", log_alpha)
-
-
 def main() -> None:
     args = parse_args()
     if args.direct_fusion and args.multi_head_direct:
@@ -585,7 +556,6 @@ def main() -> None:
             )
             print(f"WANDB_URL {wandb_run.url}")
         try:
-            register_learnable_alpha_logging(model, wandb_run)
             geometry = {}
             if args.no_augment:
                 geometry = {
