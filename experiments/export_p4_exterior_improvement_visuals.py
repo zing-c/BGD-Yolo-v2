@@ -372,7 +372,9 @@ def draw_detection_result(
         zip(predictions, counts["prediction_assignments"]), 1
     ):
         xyxy = tuple(int(round(value)) for value in box[:4])
-        color = (40, 185, 40) if assignment == "TP" else (36, 70, 220)
+        # Use a single vivid red for prediction boxes so the detection result
+        # remains unmistakable after high-resolution images are downscaled.
+        color = (0, 0, 255)
         cv2.rectangle(result, xyxy[:2], xyxy[2:], color, prediction_width)
         cv2.putText(
             result,
