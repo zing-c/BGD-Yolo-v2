@@ -1,8 +1,8 @@
 # Grad-CAM Detect Head 实验结果
 
-更新时间：2026-08-21
+更新时间：2026-08-22
 
-本文档集中记录 `best318` 框架下两个单 Detect 头实验和一个 P3+P4+P5 多头实验，包括训练参数、验证指标、统一 test 指标、推理时间、权重下载位置和文件校验值。
+本文档集中记录 `best318` 框架下两个单 Detect 头实验、一个 P3+P4+P5 多头实验及其复跑，包括训练参数、验证指标、统一 test 指标、推理时间、权重下载位置和文件校验值。
 
 ## 实验设置
 
@@ -32,8 +32,11 @@
 | 低层头 P5 | `Detect.cv3[2][1]` | `base + 0.5 × (fused - base)` | [1ghxfq1l](https://wandb.ai/zing_c-ningbo-university/BGD-YOLO/runs/1ghxfq1l) |
 | 高层头 P3 | `Detect.cv3[0][1]` | 原始直接替换分类 logits，无 alpha | [2mx54q9b](https://wandb.ai/zing_c-ningbo-university/BGD-YOLO/runs/2mx54q9b) |
 | P3+P4+P5 多头 | `Detect.cv3[0/1/2][1]` | 三个尺度均直接替换分类 logits，无 alpha | [dtj4tsb4](https://wandb.ai/zing-c-ningbo-university/BGD-YOLO/runs/dtj4tsb4) |
+| P3+P4+P5 多头复跑 | `Detect.cv3[0/1/2][1]` | 与上一行完全相同，seed 0、deterministic | [7k3zhkgt](https://wandb.ai/zing_c-ningbo-university/BGD-YOLO/runs/7k3zhkgt) |
 
 多头实现对 P3、P4、P5 分别配置独立的 `Conv2d + BatchNorm + ReLU` 投影参数，并保留各 Detect 头原有的独立分类器；三个头共享一次 Detail 前向和一次多目标 Grad-CAM 反向计算，不共享新增投影权重。
+
+这里的“三头独立权重”指三个尺度各自的新增投影层和 Detect 分类分支参数彼此独立，并不是复制三套完整模型。YOLO backbone/neck、Detail 网络等主体仍然共享，所有共享参数和三组独立分支参数一起保存在同一个 `best.pt` 中。
 
 ## 50 epoch 最佳验证指标
 
@@ -42,6 +45,7 @@
 | 低层头 P5，alpha=0.5 | 28 | 0.96998 | 0.94313 | 0.97394 | 0.94600 | 0.91971 |
 | 高层头 P3，直接融合 | 49 | 0.97059 | 0.93852 | 0.97250 | 0.94742 | **0.92072** |
 | P3+P4+P5 多头直接融合 | 32（CSV epoch 31） | 0.96584 | 0.93797 | 0.97338 | 0.94120 | 0.91638 |
+| P3+P4+P5 多头复跑 | 21（CSV epoch 20） | 0.97776 | 0.93748 | 0.96906 | 0.93823 | 0.91496 |
 
 ## 统一 Test 结果
 
@@ -52,19 +56,22 @@
 | 原始 `best318.pt` | 0.954128 | 0.888889 | 0.926514 | 0.901398 | 0.872197 | 54.90 ms/图 |
 | 低层头 P5，alpha=0.5 | 0.950123 | 0.895489 | 0.935050 | 0.916033 | 0.887504 | 53.33 ms/图 |
 | 高层头 P3，直接融合 | 0.942222 | 0.905983 | 0.937386 | 0.907642 | 0.882735 | **53.11 ms/图** |
-| P3+P4+P5 多头直接融合 | **0.955302** | **0.913360** | **0.943453** | **0.920430** | **0.891103** | 54.13 ms/图 |
+| P3+P4+P5 多头直接融合 | 0.955302 | **0.913360** | 0.943453 | **0.920430** | 0.891103 | 54.13 ms/图 |
+| P3+P4+P5 多头复跑 | **0.959459** | 0.910256 | **0.946014** | 0.914087 | **0.891513** | 53.61 ms/图 |
 
 相对原始 `best318.pt`：
 
 - 低层头 P5 的 test mAP50-95 提高 `0.015307`。
 - 高层头 P3 的 test mAP50-95 提高 `0.010537`。
 - P3+P4+P5 多头的 test mAP50-95 提高 `0.018905`，且推理时间减少约 `0.77 ms/图`。
+- P3+P4+P5 多头复跑的 test mAP50-95 提高 `0.019315`，且推理时间减少约 `1.29 ms/图`。
 
 多头相对两个单头实验：
 
 - 相对低层头 P5，mAP50-95 提高 `0.003598`，inference 增加约 `0.81 ms/图`。
 - 相对高层头 P3，mAP50-95 提高 `0.008368`，inference 增加约 `1.02 ms/图`。
-- 多头在 P、R、mAP50、mAP75 和 mAP50-95 上均为四组测试中的最高值，因此没有触发更换超参数重新训练的条件。
+- 第二次相对第一次多头：P 提高 `0.004157`、mAP50 提高 `0.002562`、mAP50-95 提高 `0.000410`、inference 减少约 `0.52 ms/图`；R 降低 `0.003104`、mAP75 降低 `0.006343`。
+- 第一次多头的 R 和 mAP75 更高，第二次多头的 P、mAP50、mAP50-95 和速度更好；两次多头的 test mAP50-95 均高于原始 `best318.pt` 和两个单头实验。
 
 ## 关键权重位置
 
@@ -96,10 +103,21 @@ GitHub Release：[best318-gradcam-heads-20260821](https://github.com/zing-c/BGD-
 - 训练结果：`experiments/runs/best318_multihead_all_detectconv_direct_e50_lr1e4/results.csv`
 - 统一 test 输出：`experiments/runs/best318_multihead_all_detectconv_direct_e50_lr1e4_test_retry/`
 
+### P3+P4+P5 多头复跑，无 alpha
+
+- GitHub 下载：[best318_multihead_p3_p4_p5_direct_rerun2_best.pt](https://github.com/zing-c/BGD-Yolo-v2/releases/download/best318-gradcam-heads-20260821/best318_multihead_p3_p4_p5_direct_rerun2_best.pt)
+- 本地位置：`experiments/runs/best318_multihead_all_detectconv_direct_e50_lr1e4_rerun2/weights/best.pt`
+- 文件大小：684,152,405 字节
+- SHA-256：`8cc1d899c10fa9cd9860bca542fa8bc0e85dd446c32766ef9db84b8c5faf0daa`
+- 对应 test mAP50-95：`0.8915125356452475`
+- 训练结果：`experiments/runs/best318_multihead_all_detectconv_direct_e50_lr1e4_rerun2/results.csv`
+- 统一 test 日志：`experiments/best318_multihead_all_detectconv_direct_e50_lr1e4_rerun2.test.log`
+- 统一 test 输出：`experiments/runs/best318_multihead_all_detectconv_direct_e50_lr1e4_rerun2_test/`
+
 ## 代码位置
 
 - 单头实验归档分支：[archive/best318-gradcam-heads-20260821](https://github.com/zing-c/BGD-Yolo-v2/tree/archive/best318-gradcam-heads-20260821)
 - 多头无 alpha 实验分支：[experiment/best318-multihead-direct](https://github.com/zing-c/BGD-Yolo-v2/tree/experiment/best318-multihead-direct)
 - 主要运行脚本：`experiments/run_318_fusion_alpha.py`
 
-多头 P3+P4+P5 直接融合实验已完成全部 50 epochs、统一 test、权重 SHA-256 校验和 GitHub Release 上传。
+两次多头 P3+P4+P5 直接融合实验均已完成全部 50 epochs、统一 test、权重 SHA-256 校验和 GitHub Release 上传。
