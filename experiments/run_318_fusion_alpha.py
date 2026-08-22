@@ -2,13 +2,14 @@
 
 This intentionally does not initialize anything from ``best318.pt``. It uses
 the YOLO and Detail checkpoints that preceded the best318 joint run and
-restores the ZIP-era 4x4 Detail-to-Detect feature path. It supports the fixed
-single-head logit-mixing experiment::
+restores the ZIP-era 4x4 Detail-to-Detect feature path. It supports fixed or
+learnable single-head logit mixing::
 
     output = base_yolo + alpha * (zip_fused - base_yolo)
 
-It also supports the original direct single-head rule and direct multi-head
-replacement. The direct modes do not attach or log a fusion-alpha parameter.
+Learnable alpha is represented as ``sigmoid(fusion_alpha_logit_bias)`` so it
+remains in (0, 1). It also supports the original direct single-head rule and
+direct multi-head replacement; direct modes do not attach or log alpha.
 """
 
 from __future__ import annotations
@@ -51,6 +52,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--archive", type=Path, default=DEFAULT_ARCHIVE)
     parser.add_argument("--data", type=Path, default=DEFAULT_DATA)
     parser.add_argument("--fusion-alpha", type=float, default=0.5)
+    parser.add_argument(
+        "--learnable-alpha", action="store_true",
+        help=(
+            "optimize a sigmoid-constrained scalar alpha initialized by "
+            "--fusion-alpha; fixed-alpha behavior remains the default"
+        ),
+    )
     parser.add_argument(
         "--direct-fusion", action="store_true",
         help="use the original best318 direct logit replacement without introducing fusion_alpha",
@@ -152,7 +160,11 @@ def patch_fusion_alpha(legacy_val) -> None:
         "m.cv3[self.head_dict[self.head_select]][2].weight.dtype)).squeeze(1)\n"
         "        selected_level = self.head_dict[self.head_select]\n"
         "        base_out = x[1][selected_level][:, -1, ...].clone()\n"
-        "        out = base_out + float(self.fusion_alpha) * (fused_out - base_out)\n"
+        "        if hasattr(self.model, 'fusion_alpha_logit_bias'):\n"
+        "            fusion_alpha = torch.sigmoid(self.model.fusion_alpha_logit_bias)\n"
+        "        else:\n"
+        "            fusion_alpha = self.fusion_alpha\n"
+        "        out = base_out + fusion_alpha * (fused_out - base_out)\n"
         "        x[1][selected_level][:, -1, ...] = out"
     )
     if source.count(needle) != 1:
@@ -324,7 +336,10 @@ def build_model(args: argparse.Namespace, legacy_val):
             "best318_framework_multi_head_direct_v1"
             if args.multi_head_direct else (
                 "best318_framework_direct_fusion_v1"
-                if args.direct_fusion else "best318_framework_fixed_logit_alpha_v1"
+                if args.direct_fusion else (
+                    "best318_framework_learnable_logit_alpha_v1"
+                    if args.learnable_alpha else "best318_framework_fixed_logit_alpha_v1"
+                )
             )
         ),
         "yolo_weight": str(args.yolo_weight.resolve()),
@@ -343,8 +358,20 @@ def build_model(args: argparse.Namespace, legacy_val):
         ),
     }
     if not args.direct_fusion and not args.multi_head_direct:
-        model.fusion_alpha = float(args.fusion_alpha)
-        fusion_config["fusion_alpha"] = float(args.fusion_alpha)
+        if args.learnable_alpha:
+            initial_alpha = torch.tensor(float(args.fusion_alpha), device=device, dtype=dtype)
+            model.model.register_parameter(
+                "fusion_alpha_logit_bias",
+                torch.nn.Parameter(torch.logit(initial_alpha)),
+            )
+            fusion_config.update({
+                "fusion_alpha_mode": "learnable_sigmoid",
+                "fusion_alpha_initial": float(args.fusion_alpha),
+                "fusion_alpha_parameter": "sigmoid(fusion_alpha_logit_bias)",
+            })
+        else:
+            model.fusion_alpha = float(args.fusion_alpha)
+            fusion_config["fusion_alpha"] = float(args.fusion_alpha)
     model.model.bgd_318_alpha_config = fusion_config
     # Trainer validation runs under torch inference mode.  The original ZIP
     # implementation assumed gradients were globally available and otherwise
@@ -367,6 +394,7 @@ def load_joint_checkpoint(args: argparse.Namespace):
     config = getattr(detection_model, "bgd_318_alpha_config", None)
     supported_methods = {
         "best318_framework_fixed_logit_alpha_v1",
+        "best318_framework_learnable_logit_alpha_v1",
         "best318_framework_direct_fusion_v1",
         "best318_framework_multi_head_direct_v1",
     }
@@ -383,6 +411,10 @@ def load_joint_checkpoint(args: argparse.Namespace):
     wrapper.detail_model = detection_model.detail_model
     if "fusion_alpha" in config:
         wrapper.fusion_alpha = float(config["fusion_alpha"])
+    if config["method"] == "best318_framework_learnable_logit_alpha_v1":
+        parameter = getattr(detection_model, "fusion_alpha_logit_bias", None)
+        if not isinstance(parameter, torch.nn.Parameter):
+            raise RuntimeError("Learnable-alpha checkpoint is missing fusion_alpha_logit_bias")
     wrapper.conf_threshold = float(config["candidate_conf"])
     wrapper.head_select = config["head_select"]
     wrapper.target_layers = list(config["target_layers"])
@@ -397,11 +429,22 @@ def load_joint_checkpoint(args: argparse.Namespace):
     return model
 
 
+def learnable_alpha_value(detection_model) -> float | None:
+    parameter = getattr(detection_model, "fusion_alpha_logit_bias", None)
+    if parameter is None:
+        return None
+    return float(torch.sigmoid(parameter.detach().float()).cpu())
+
+
 def print_configuration(args: argparse.Namespace, model) -> None:
     trainable = sum(p.numel() for p in model.model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.model.parameters())
+    runtime_config = dict(model.model.bgd_318_alpha_config)
+    alpha = learnable_alpha_value(model.model)
+    if alpha is not None:
+        runtime_config["fusion_alpha_current"] = alpha
     print("BGD_318_FUSION_CONFIG " + json.dumps({
-        **model.model.bgd_318_alpha_config,
+        **runtime_config,
         "epochs": args.epochs,
         "optimizer": args.optimizer,
         "lr0": args.lr0,
@@ -420,16 +463,53 @@ def print_configuration(args: argparse.Namespace, model) -> None:
     }, sort_keys=True))
 
 
+def register_learnable_alpha_logging(model, wandb_run) -> None:
+    """Log train/EMA alpha and copy the latest values into checkpoint metadata."""
+    if not hasattr(model.model, "fusion_alpha_logit_bias"):
+        return
+
+    def log_alpha(trainer) -> None:
+        train_alpha = learnable_alpha_value(trainer.model)
+        ema_model = getattr(getattr(trainer, "ema", None), "ema", None)
+        ema_alpha = learnable_alpha_value(ema_model) if ema_model is not None else None
+        for current_model, current_alpha in (
+            (trainer.model, train_alpha),
+            (ema_model, ema_alpha),
+        ):
+            config = getattr(current_model, "bgd_318_alpha_config", None)
+            if isinstance(config, dict) and current_alpha is not None:
+                config["fusion_alpha_current"] = current_alpha
+        print(
+            f"LEARNABLE_ALPHA epoch={trainer.epoch + 1} "
+            f"train={train_alpha:.8f} ema={ema_alpha:.8f}"
+        )
+        if wandb_run is not None:
+            wandb_run.log({
+                "fusion/alpha_train": train_alpha,
+                "fusion/alpha_ema": ema_alpha,
+            }, step=trainer.epoch + 1, commit=False)
+
+    model.add_callback("on_train_epoch_end", log_alpha)
+
+
 def main() -> None:
     args = parse_args()
     if args.direct_fusion and args.multi_head_direct:
         raise ValueError("--direct-fusion and --multi-head-direct are mutually exclusive")
     if args.multi_head_direct and len(set(args.multi_heads)) < 2:
         raise ValueError("--multi-head-direct requires at least two distinct heads")
+    if args.learnable_alpha and (args.direct_fusion or args.multi_head_direct):
+        raise ValueError("--learnable-alpha cannot be combined with a direct-fusion mode")
     if args.resume_training and (args.mode != "train" or args.checkpoint is None):
         raise ValueError("--resume-training requires train mode and --checkpoint")
-    if not args.direct_fusion and not args.multi_head_direct and not 0.0 <= args.fusion_alpha <= 1.0:
-        raise ValueError("fusion-alpha must be in [0, 1]")
+    if not args.direct_fusion and not args.multi_head_direct:
+        valid_alpha = (
+            0.0 < args.fusion_alpha < 1.0
+            if args.learnable_alpha else 0.0 <= args.fusion_alpha <= 1.0
+        )
+        if not valid_alpha:
+            interval = "(0, 1)" if args.learnable_alpha else "[0, 1]"
+            raise ValueError(f"fusion-alpha must be in {interval}")
     required_paths = [args.archive, args.data]
     if args.checkpoint is not None:
         required_paths.append(args.checkpoint)
@@ -457,14 +537,18 @@ def main() -> None:
                 workers=args.workers, device=args.device,
                 project=str(ROOT / "experiments" / "runs"), name=args.name,
             )
-            print("EXACT_METRICS " + json.dumps({
+            exact_metrics = {
                 "precision": float(metrics.box.mp),
                 "recall": float(metrics.box.mr),
                 "map50": float(metrics.box.map50),
                 "map75": float(metrics.box.map75),
                 "map50_95": float(metrics.box.map),
                 "speed_ms_per_image": {key: float(value) for key, value in metrics.speed.items()},
-            }, sort_keys=True))
+            }
+            alpha = learnable_alpha_value(model.model)
+            if alpha is not None:
+                exact_metrics["fusion_alpha"] = alpha
+            print("EXACT_METRICS " + json.dumps(exact_metrics, sort_keys=True))
             return
 
         wandb_run = None
@@ -490,13 +574,18 @@ def main() -> None:
                     "best318-framework", "independent-pretraining",
                     (
                         "multi-head-direct" if args.multi_head_direct
-                        else ("direct-fusion" if args.direct_fusion else "fusion-alpha")
+                        else (
+                            "direct-fusion" if args.direct_fusion else (
+                                "learnable-alpha" if args.learnable_alpha else "fixed-alpha"
+                            )
+                        )
                     ),
                     "whole-finetune",
                 ),
             )
             print(f"WANDB_URL {wandb_run.url}")
         try:
+            register_learnable_alpha_logging(model, wandb_run)
             geometry = {}
             if args.no_augment:
                 geometry = {
