@@ -4,11 +4,13 @@
 
 本目录提供可直接放入论文框架图的真实模型可视化素材，覆盖输入图像、候选框、P4 Grad-CAM、`64×64`细节截图、`3×4×4` Detail特征、P4稀疏回填图、原始P4特征、融合特征和最终检测结果。
 
+> 如果论文主图要求“从建筑外侧拍摄玻璃”、展示全部`conf>0.2`候选及逐候选截图，并直观看到相对`best318.pt`的改进，请优先使用新整理的[`00587.jpg`室外案例](P4_EXTERIOR_IMPROVEMENT_VISUAL_ASSETS.md)。本页的`00456.jpg`继续保留，适合展示紧凑的完整张量路径。
+
 素材目录：[`docs/assets/p4_framework_visuals/`](assets/p4_framework_visuals/)
 
 ## 1. 选图结论
 
-最终选择测试集样本 `00456.jpg`，而不是使用此前failure audit中的样本。选择原因：
+本组完整张量路径素材使用测试集样本 `00456.jpg`，而不是使用此前failure audit中的样本。选择原因：
 
 - 只有一个主要破损玻璃区域，主体明确；
 - 破损纹理密集，在缩小后的论文图中仍能识别；
@@ -133,6 +135,7 @@ Concat(64+3 channels)
 
 ## 8. 相关文档与复现代码
 
+- 室外玻璃、全部候选与基线改进对比：[P4_EXTERIOR_IMPROVEMENT_VISUAL_ASSETS.md](P4_EXTERIOR_IMPROVEMENT_VISUAL_ASSETS.md)
 - 结构、尺寸和生成Prompt：[P4_LEARNABLE_ALPHA_DETAIL_FUSION_ARCHITECTURE.md](P4_LEARNABLE_ALPHA_DETAIL_FUSION_ARCHITECTURE.md)
 - 指标和权重：[GRADCAM_DETECT_HEAD_EXPERIMENT_RESULTS.md](GRADCAM_DETECT_HEAD_EXPERIMENT_RESULTS.md)
 - 可视化导出脚本：[实验分支中的`export_p4_framework_visuals.py`](https://github.com/zing-c/BGD-Yolo-v2/blob/experiment/best318-multihead-direct/experiments/export_p4_framework_visuals.py)

@@ -4,7 +4,7 @@
 
 本文档用于绘制当前 `best318` 框架下 **P4 单头、Grad-CAM 引导细节截图、可学习 alpha logit 融合** 的论文结构图。图中应简化 YOLO 主干，重点展开候选生成、Grad-CAM 定位、Detail 特征提取、空间回填和 P4 分类融合。
 
-真实测试样本及各阶段可视化素材见：[P4 细节融合框架图可视化素材](P4_FRAMEWORK_VISUAL_ASSETS.md)。
+真实测试样本及各阶段可视化素材见：[P4 细节融合框架图可视化素材](P4_FRAMEWORK_VISUAL_ASSETS.md)。论文主图优先使用包含全部候选、逐候选截图和基线对比的[室外玻璃案例](P4_EXTERIOR_IMPROVEMENT_VISUAL_ASSETS.md)。
 
 > 实际训练权重中的检测器是三尺度 YOLOv8n，包含 P3、P4、P5，stride 分别为 8、16、32。旧训练目录中的部分 `args.yaml` 与实际序列化权重不一致，结构图应以实际权重中的三尺度模型为准。
 
@@ -648,5 +648,6 @@ Draw a clean horizontal vector architecture diagram on a white background for a 
 - Detail Encoder：`Resnet6.py` 中的 `Detail_Net_attn_block`；
 - Detail 前向兼容修正：`experiments/eval_best318_legacy.py` 中的 `patch_legacy_detail_forward`；
 - 三尺度 YOLO 配置：`ultralytics/models/v8/yolov8.yaml`；
+- 室外玻璃改进案例：[P4_EXTERIOR_IMPROVEMENT_VISUAL_ASSETS.md](P4_EXTERIOR_IMPROVEMENT_VISUAL_ASSETS.md)；
 - 框架图真实可视化素材：[P4_FRAMEWORK_VISUAL_ASSETS.md](P4_FRAMEWORK_VISUAL_ASSETS.md)；
 - 指标和权重：[Grad-CAM Detect Head 实验结果](GRADCAM_DETECT_HEAD_EXPERIMENT_RESULTS.md)。
