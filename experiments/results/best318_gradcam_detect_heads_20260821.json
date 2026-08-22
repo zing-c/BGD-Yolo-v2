@@ -1,5 +1,6 @@
 {
   "date": "2026-08-21",
+  "last_updated": "2026-08-22",
   "test_config": {
     "batch": 1,
     "conf": 0.5,
@@ -38,6 +39,20 @@
       "recall": 0.8954888873962221,
       "inference_ms_per_image": 53.32777213692218,
       "wandb": "https://wandb.ai/zing_c-ningbo-university/BGD-YOLO/runs/1ghxfq1l"
+    },
+    "mid_p4_alpha_0_5": {
+      "best_validation_epoch": 41,
+      "best_validation_map50_95": 0.91871,
+      "best_weight_local_path": "experiments/runs/best318_mid_p4_detectconv_alpha05_e50_lr1e4/weights/best.pt",
+      "best_weight_sha256": "1042eef87aa36bb2af7d0a97f84ff39934c0b51c1696e9cfde0309d09fcb6a30",
+      "best_weight_url": "https://github.com/zing-c/BGD-Yolo-v2/releases/download/best318-gradcam-heads-20260821/best318_mid_p4_alpha05_best.pt",
+      "map50": 0.9322197968866465,
+      "map50_95": 0.8826389520844394,
+      "map75": 0.9123533338062191,
+      "precision": 0.9457013574660633,
+      "recall": 0.8931623931623932,
+      "inference_ms_per_image": 53.02714659961801,
+      "wandb": "https://wandb.ai/zing_c-ningbo-university/BGD-YOLO/runs/a5ucwbtv"
     }
   }
 }
