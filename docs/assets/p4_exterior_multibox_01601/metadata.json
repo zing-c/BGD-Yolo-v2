@@ -1,0 +1,557 @@
+{
+  "source_image": "/home/user/projects/czy/mydata/images/test/01601.jpg",
+  "source_label": "/home/user/projects/czy/mydata/labels/test/01601.txt",
+  "baseline_checkpoint": "/home/user/projects/czy/BGD-Yolo_v2_copy/best318.pt",
+  "method_checkpoint": "/home/user/projects/czy/BGD-Yolo_v2_copy/experiments/runs/best318_mid_p4_detectconv_learnable_alpha_init05_e50_lr1e4_r2/weights/best.pt",
+  "candidate_conf_strictly_greater_than": 0.2,
+  "final_conf": 0.5,
+  "nms_iou": 0.5,
+  "candidate_count": 26,
+  "candidates": [
+    {
+      "id": "C01",
+      "confidence": 0.7637954354286194,
+      "box_xyxy": [
+        297.47418212890625,
+        189.4429168701172,
+        1046.8028564453125,
+        532.3037109375
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C01_conf_0.7638.png",
+      "crop_preview": "candidate_crops_preview/C01_conf_0.7638.png"
+    },
+    {
+      "id": "C02",
+      "confidence": 0.9087857604026794,
+      "box_xyxy": [
+        285.7315368652344,
+        189.8544158935547,
+        1056.1600341796875,
+        531.7426147460938
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C02_conf_0.9088.png",
+      "crop_preview": "candidate_crops_preview/C02_conf_0.9088.png"
+    },
+    {
+      "id": "C03",
+      "confidence": 0.9231392741203308,
+      "box_xyxy": [
+        291.4745788574219,
+        189.6191864013672,
+        1049.0418701171875,
+        530.8587036132812
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C03_conf_0.9231.png",
+      "crop_preview": "candidate_crops_preview/C03_conf_0.9231.png"
+    },
+    {
+      "id": "C04",
+      "confidence": 0.8712400794029236,
+      "box_xyxy": [
+        296.2915954589844,
+        189.43472290039062,
+        1050.719970703125,
+        531.1582641601562
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C04_conf_0.8712.png",
+      "crop_preview": "candidate_crops_preview/C04_conf_0.8712.png"
+    },
+    {
+      "id": "C05",
+      "confidence": 0.38749951124191284,
+      "box_xyxy": [
+        1040.5863037109375,
+        220.33323669433594,
+        1462.137939453125,
+        600.4188842773438
+      ],
+      "gradcam_center_xy": [
+        1245.375,
+        422.71875
+      ],
+      "crop_64": "candidate_crops_64/C05_conf_0.3875.png",
+      "crop_preview": "candidate_crops_preview/C05_conf_0.3875.png"
+    },
+    {
+      "id": "C06",
+      "confidence": 0.24898232519626617,
+      "box_xyxy": [
+        1046.5177001953125,
+        240.02658081054688,
+        1464.2060546875,
+        602.75390625
+      ],
+      "gradcam_center_xy": [
+        1245.375,
+        422.71875
+      ],
+      "crop_64": "candidate_crops_64/C06_conf_0.2490.png",
+      "crop_preview": "candidate_crops_preview/C06_conf_0.2490.png"
+    },
+    {
+      "id": "C07",
+      "confidence": 0.8958080410957336,
+      "box_xyxy": [
+        290.61114501953125,
+        191.80186462402344,
+        1048.4744873046875,
+        531.06591796875
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C07_conf_0.8958.png",
+      "crop_preview": "candidate_crops_preview/C07_conf_0.8958.png"
+    },
+    {
+      "id": "C08",
+      "confidence": 0.8323143124580383,
+      "box_xyxy": [
+        297.8121643066406,
+        191.5778350830078,
+        1049.36474609375,
+        531.0875854492188
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C08_conf_0.8323.png",
+      "crop_preview": "candidate_crops_preview/C08_conf_0.8323.png"
+    },
+    {
+      "id": "C09",
+      "confidence": 0.37664908170700073,
+      "box_xyxy": [
+        1038.579833984375,
+        212.4805908203125,
+        1457.9940185546875,
+        597.9603881835938
+      ],
+      "gradcam_center_xy": [
+        1245.375,
+        422.71875
+      ],
+      "crop_64": "candidate_crops_64/C09_conf_0.3766.png",
+      "crop_preview": "candidate_crops_preview/C09_conf_0.3766.png"
+    },
+    {
+      "id": "C10",
+      "confidence": 0.5470252633094788,
+      "box_xyxy": [
+        1039.250732421875,
+        237.1724395751953,
+        1462.1690673828125,
+        599.9173583984375
+      ],
+      "gradcam_center_xy": [
+        1245.375,
+        422.71875
+      ],
+      "crop_64": "candidate_crops_64/C10_conf_0.5470.png",
+      "crop_preview": "candidate_crops_preview/C10_conf_0.5470.png"
+    },
+    {
+      "id": "C11",
+      "confidence": 0.6074060797691345,
+      "box_xyxy": [
+        1044.2371826171875,
+        246.38375854492188,
+        1463.8709716796875,
+        602.0637817382812
+      ],
+      "gradcam_center_xy": [
+        1245.375,
+        422.71875
+      ],
+      "crop_64": "candidate_crops_64/C11_conf_0.6074.png",
+      "crop_preview": "candidate_crops_preview/C11_conf_0.6074.png"
+    },
+    {
+      "id": "C12",
+      "confidence": 0.4452461302280426,
+      "box_xyxy": [
+        1038.88720703125,
+        239.28492736816406,
+        1458.1785888671875,
+        601.462890625
+      ],
+      "gradcam_center_xy": [
+        1245.375,
+        422.71875
+      ],
+      "crop_64": "candidate_crops_64/C12_conf_0.4452.png",
+      "crop_preview": "candidate_crops_preview/C12_conf_0.4452.png"
+    },
+    {
+      "id": "C13",
+      "confidence": 0.6357201337814331,
+      "box_xyxy": [
+        1039.026611328125,
+        247.4457550048828,
+        1463.5609130859375,
+        602.5722045898438
+      ],
+      "gradcam_center_xy": [
+        1245.375,
+        422.71875
+      ],
+      "crop_64": "candidate_crops_64/C13_conf_0.6357.png",
+      "crop_preview": "candidate_crops_preview/C13_conf_0.6357.png"
+    },
+    {
+      "id": "C14",
+      "confidence": 0.6130120754241943,
+      "box_xyxy": [
+        1044.1690673828125,
+        251.72573852539062,
+        1464.050048828125,
+        603.9090576171875
+      ],
+      "gradcam_center_xy": [
+        1245.375,
+        422.71875
+      ],
+      "crop_64": "candidate_crops_64/C14_conf_0.6130.png",
+      "crop_preview": "candidate_crops_preview/C14_conf_0.6130.png"
+    },
+    {
+      "id": "C15",
+      "confidence": 0.6694197058677673,
+      "box_xyxy": [
+        1041.35595703125,
+        244.39222717285156,
+        1467.3448486328125,
+        602.3200073242188
+      ],
+      "gradcam_center_xy": [
+        1245.375,
+        422.71875
+      ],
+      "crop_64": "candidate_crops_64/C15_conf_0.6694.png",
+      "crop_preview": "candidate_crops_preview/C15_conf_0.6694.png"
+    },
+    {
+      "id": "C16",
+      "confidence": 0.2842904329299927,
+      "box_xyxy": [
+        281.0240478515625,
+        185.45901489257812,
+        1481.9031982421875,
+        553.3086547851562
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C16_conf_0.2843.png",
+      "crop_preview": "candidate_crops_preview/C16_conf_0.2843.png"
+    },
+    {
+      "id": "C17",
+      "confidence": 0.6348033547401428,
+      "box_xyxy": [
+        280.5348205566406,
+        184.64015197753906,
+        1472.553955078125,
+        571.3031616210938
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C17_conf_0.6348.png",
+      "crop_preview": "candidate_crops_preview/C17_conf_0.6348.png"
+    },
+    {
+      "id": "C18",
+      "confidence": 0.6518120765686035,
+      "box_xyxy": [
+        285.5390319824219,
+        181.64947509765625,
+        1475.0294189453125,
+        586.5674438476562
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C18_conf_0.6518.png",
+      "crop_preview": "candidate_crops_preview/C18_conf_0.6518.png"
+    },
+    {
+      "id": "C19",
+      "confidence": 0.7193773984909058,
+      "box_xyxy": [
+        285.21380615234375,
+        185.78964233398438,
+        1026.261962890625,
+        531.09716796875
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C19_conf_0.7194.png",
+      "crop_preview": "candidate_crops_preview/C19_conf_0.7194.png"
+    },
+    {
+      "id": "C20",
+      "confidence": 0.6263683438301086,
+      "box_xyxy": [
+        289.0699768066406,
+        186.21466064453125,
+        1051.2796630859375,
+        533.1210327148438
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C20_conf_0.6264.png",
+      "crop_preview": "candidate_crops_preview/C20_conf_0.6264.png"
+    },
+    {
+      "id": "C21",
+      "confidence": 0.5065814256668091,
+      "box_xyxy": [
+        287.5545959472656,
+        184.77297973632812,
+        1314.3994140625,
+        538.43310546875
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C21_conf_0.5066.png",
+      "crop_preview": "candidate_crops_preview/C21_conf_0.5066.png"
+    },
+    {
+      "id": "C22",
+      "confidence": 0.2788964509963989,
+      "box_xyxy": [
+        282.43524169921875,
+        184.55784606933594,
+        1480.791748046875,
+        553.0450439453125
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C22_conf_0.2789.png",
+      "crop_preview": "candidate_crops_preview/C22_conf_0.2789.png"
+    },
+    {
+      "id": "C23",
+      "confidence": 0.6836835145950317,
+      "box_xyxy": [
+        286.276611328125,
+        185.22264099121094,
+        1471.253173828125,
+        569.7810668945312
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C23_conf_0.6837.png",
+      "crop_preview": "candidate_crops_preview/C23_conf_0.6837.png"
+    },
+    {
+      "id": "C24",
+      "confidence": 0.5942330360412598,
+      "box_xyxy": [
+        291.1039733886719,
+        186.4569091796875,
+        1479.3218994140625,
+        583.1079711914062
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C24_conf_0.5942.png",
+      "crop_preview": "candidate_crops_preview/C24_conf_0.5942.png"
+    },
+    {
+      "id": "C25",
+      "confidence": 0.28809934854507446,
+      "box_xyxy": [
+        286.59002685546875,
+        186.9230194091797,
+        1476.21142578125,
+        575.0331420898438
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C25_conf_0.2881.png",
+      "crop_preview": "candidate_crops_preview/C25_conf_0.2881.png"
+    },
+    {
+      "id": "C26",
+      "confidence": 0.41667839884757996,
+      "box_xyxy": [
+        294.4788513183594,
+        189.4976806640625,
+        1477.311767578125,
+        586.5081176757812
+      ],
+      "gradcam_center_xy": [
+        678.375,
+        374.625
+      ],
+      "crop_64": "candidate_crops_64/C26_conf_0.4167.png",
+      "crop_preview": "candidate_crops_preview/C26_conf_0.4167.png"
+    }
+  ],
+  "gradcam": {
+    "hook": "Detect.cv3[1][1]",
+    "shape": [
+      760,
+      1620
+    ],
+    "minimum": 0.0,
+    "maximum": 0.9991672039031982,
+    "sum": 21208.8359375,
+    "nonzero_pixels": 56210
+  },
+  "ground_truth_boxes_xyxy": [
+    [
+      291.0,
+      195.0,
+      1045.0,
+      533.0
+    ],
+    [
+      1045.0,
+      268.0,
+      1479.0,
+      596.0
+    ]
+  ],
+  "baseline_final_boxes": [
+    [
+      288.058837890625,
+      183.8523406982422,
+      1029.7633056640625,
+      525.9712524414062,
+      0.8634853363037109,
+      0.0
+    ]
+  ],
+  "method_final_boxes": [
+    [
+      291.4745788574219,
+      189.6191864013672,
+      1049.0418701171875,
+      530.8587036132812,
+      0.9067091941833496,
+      0.0
+    ],
+    [
+      1039.026611328125,
+      247.4457550048828,
+      1463.5609130859375,
+      602.5722045898438,
+      0.6223070621490479,
+      0.0
+    ]
+  ],
+  "baseline_metrics": {
+    "best_iou": 0.9258434772491455,
+    "matched_confidence": 0.8634853363037109,
+    "ground_truth_index": 0,
+    "prediction_index": 0
+  },
+  "method_metrics": {
+    "best_iou": 0.972308337688446,
+    "matched_confidence": 0.9067091941833496,
+    "ground_truth_index": 0,
+    "prediction_index": 0
+  },
+  "baseline_detection_counts": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 1,
+    "prediction_assignments": [
+      "TP"
+    ]
+  },
+  "method_detection_counts": {
+    "tp": 2,
+    "fp": 0,
+    "fn": 0,
+    "prediction_assignments": [
+      "TP",
+      "TP"
+    ]
+  },
+  "improvement": {
+    "confidence_absolute": 0.04322385787963867,
+    "iou_absolute": 0.04646486043930054
+  },
+  "method_config": {
+    "method": "best318_framework_learnable_logit_alpha_v1",
+    "yolo_weight": "/home/user/projects/czy/BGD-Yolo_v2_copy/yolo-runs/train/train10/weights/best.pt",
+    "detail_weight": "/home/user/projects/czy/BGD-Yolo_v2_copy/run/detail_net_attn.pt",
+    "initializes_from_best318": false,
+    "candidate_conf": 0.2,
+    "head_select": "mid",
+    "head_selects": [
+      "mid"
+    ],
+    "target_layers": [
+      -1
+    ],
+    "fusion": "base_logit + alpha * (zip_fused_logit - base_logit)",
+    "fusion_alpha_mode": "learnable_sigmoid",
+    "fusion_alpha_initial": 0.5,
+    "fusion_alpha_parameter": "sigmoid(fusion_alpha_logit_bias)",
+    "fusion_alpha_current": 0.4982872009277344
+  },
+  "tensor_shapes": {
+    "detail_crops": [
+      26,
+      3,
+      64,
+      64
+    ],
+    "detail_features": [
+      26,
+      3,
+      4,
+      4
+    ],
+    "p4_activation": [
+      64,
+      40,
+      40
+    ],
+    "fused_activation": [
+      64,
+      40,
+      40
+    ]
+  }
+}
