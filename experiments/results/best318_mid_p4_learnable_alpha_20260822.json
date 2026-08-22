@@ -1,0 +1,91 @@
+{
+  "run": "best318_mid_p4_detectconv_learnable_alpha_init05_e50_lr1e4_r2",
+  "date": "2026-08-22",
+  "method": "best318_framework_learnable_logit_alpha_v1",
+  "code_commits": [
+    "f50e6f7",
+    "36bd84a"
+  ],
+  "training": {
+    "head": "mid/P4",
+    "candidate_conf": 0.2,
+    "alpha_parameterization": "sigmoid(fusion_alpha_logit_bias)",
+    "alpha_initial": 0.5,
+    "epochs": 50,
+    "optimizer": "AdamW",
+    "lr0": 0.0001,
+    "lrf": 0.01,
+    "momentum": 0.937,
+    "weight_decay": 0.0005,
+    "alpha_weight_decay": 0.0,
+    "warmup_epochs": 3.0,
+    "warmup_momentum": 0.8,
+    "warmup_bias_lr": 0.0,
+    "batch": 32,
+    "workers": 2,
+    "amp": true,
+    "patience": 50,
+    "wandb": "https://wandb.ai/zing_c-ningbo-university/BGD-YOLO/runs/cy2abxu9"
+  },
+  "checkpoint_selection": {
+    "metric": "validation mAP50",
+    "best_epoch": 14,
+    "best_alpha": 0.4982872009277344,
+    "best_validation": {
+      "precision": 0.97789,
+      "recall": 0.94306,
+      "map50": 0.97334,
+      "map75": 0.94276,
+      "map50_95": 0.91233
+    },
+    "final_epoch": 50,
+    "final_alpha": 0.49697876,
+    "final_validation": {
+      "precision": 0.98497,
+      "recall": 0.92417,
+      "map50": 0.97282,
+      "map75": 0.94928,
+      "map50_95": 0.91925
+    }
+  },
+  "test": {
+    "split": "test",
+    "images": 1598,
+    "instances": 234,
+    "imgsz": 640,
+    "candidate_conf": 0.2,
+    "eval_conf": 0.5,
+    "eval_iou": 0.5,
+    "batch": 1,
+    "checkpoint": "best.pt",
+    "alpha": 0.4982872009277344,
+    "precision": 0.9455101097043136,
+    "recall": 0.8898509735839488,
+    "map50": 0.9351960306074634,
+    "map75": 0.9163556593009656,
+    "map50_95": 0.8859358672939293,
+    "speed_ms_per_image": {
+      "preprocess": 0.14206912550371192,
+      "inference": 52.15285880693954,
+      "loss": 0.0036983227401561525,
+      "postprocess": 0.21228429223777953
+    }
+  },
+  "artifacts": {
+    "results_csv": "experiments/runs/best318_mid_p4_detectconv_learnable_alpha_init05_e50_lr1e4_r2/results.csv",
+    "results_plot": "experiments/runs/best318_mid_p4_detectconv_learnable_alpha_init05_e50_lr1e4_r2/results.png",
+    "test_log": "experiments/best318_mid_p4_detectconv_learnable_alpha_init05_e50_lr1e4_r2.test.log",
+    "best": {
+      "local_path": "experiments/runs/best318_mid_p4_detectconv_learnable_alpha_init05_e50_lr1e4_r2/weights/best.pt",
+      "size_bytes": 685017534,
+      "sha256": "e0a53a49f76bc9d4675b35191e7b5b4689497489e77febcc8bc57df1bcb4687b",
+      "url": "https://github.com/zing-c/BGD-Yolo-v2/releases/download/best318-gradcam-heads-20260821/best318_mid_p4_learnable_alpha_best.pt"
+    },
+    "last": {
+      "local_path": "experiments/runs/best318_mid_p4_detectconv_learnable_alpha_init05_e50_lr1e4_r2/weights/last.pt",
+      "size_bytes": 685017534,
+      "sha256": "91b94bf4250e2cedaa9f72ca901411334b9925b5b3859b2a698b4301861cf809",
+      "url": "https://github.com/zing-c/BGD-Yolo-v2/releases/download/best318-gradcam-heads-20260821/best318_mid_p4_learnable_alpha_last.pt"
+    }
+  }
+}

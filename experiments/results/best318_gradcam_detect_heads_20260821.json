@@ -53,6 +53,32 @@
       "recall": 0.8931623931623932,
       "inference_ms_per_image": 53.02714659961801,
       "wandb": "https://wandb.ai/zing_c-ningbo-university/BGD-YOLO/runs/a5ucwbtv"
+    },
+    "mid_p4_learnable_alpha_init_0_5": {
+      "alpha_initial": 0.5,
+      "best_checkpoint_alpha": 0.4982872009277344,
+      "best_checkpoint_epoch": 14,
+      "best_checkpoint_selection_metric": "validation mAP50",
+      "best_checkpoint_validation_map50": 0.97334,
+      "best_checkpoint_validation_map50_95": 0.91233,
+      "best_weight_local_path": "experiments/runs/best318_mid_p4_detectconv_learnable_alpha_init05_e50_lr1e4_r2/weights/best.pt",
+      "best_weight_sha256": "e0a53a49f76bc9d4675b35191e7b5b4689497489e77febcc8bc57df1bcb4687b",
+      "best_weight_url": "https://github.com/zing-c/BGD-Yolo-v2/releases/download/best318-gradcam-heads-20260821/best318_mid_p4_learnable_alpha_best.pt",
+      "code_commits": ["f50e6f7", "36bd84a"],
+      "final_epoch": 50,
+      "final_epoch_alpha": 0.49697876,
+      "final_epoch_validation_map50": 0.97282,
+      "final_epoch_validation_map50_95": 0.91925,
+      "inference_ms_per_image": 52.15285880693954,
+      "last_weight_local_path": "experiments/runs/best318_mid_p4_detectconv_learnable_alpha_init05_e50_lr1e4_r2/weights/last.pt",
+      "last_weight_sha256": "91b94bf4250e2cedaa9f72ca901411334b9925b5b3859b2a698b4301861cf809",
+      "last_weight_url": "https://github.com/zing-c/BGD-Yolo-v2/releases/download/best318-gradcam-heads-20260821/best318_mid_p4_learnable_alpha_last.pt",
+      "map50": 0.9351960306074634,
+      "map50_95": 0.8859358672939293,
+      "map75": 0.9163556593009656,
+      "precision": 0.9455101097043136,
+      "recall": 0.8898509735839488,
+      "wandb": "https://wandb.ai/zing_c-ningbo-university/BGD-YOLO/runs/cy2abxu9"
     }
   }
 }
