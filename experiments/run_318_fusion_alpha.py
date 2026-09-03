@@ -68,6 +68,14 @@ def parse_args() -> argparse.Namespace:
         help="directly fuse every head in --multi-heads without introducing fusion_alpha",
     )
     parser.add_argument(
+        "--pre-detect-p4-direct", action="store_true",
+        help=(
+            "hook the P4 neck C2f immediately before Detect, concatenate its "
+            "128-channel feature with the 3-channel spatial Detail feature, "
+            "and directly recompute the complete P4 classification branch"
+        ),
+    )
+    parser.add_argument(
         "--multi-heads", nargs="+", choices=("high", "mid", "low"),
         default=("high", "mid", "low"),
         help="Detect heads used by --multi-head-direct (default: all three)",
@@ -84,6 +92,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--warmup-momentum", type=float, default=0.8)
     parser.add_argument("--warmup-bias-lr", type=float, default=0.0)
     parser.add_argument("--batch", type=int, default=32)
+    parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--device", default="0")
     parser.add_argument(
@@ -111,6 +120,7 @@ def install_legacy_modules(
     directory: str,
     use_fusion_alpha: bool = True,
     use_multi_head_direct: bool = False,
+    use_pre_detect_p4_direct: bool = False,
 ):
     # Reuse the import-only dependency shims and corrected residual forward
     # already audited by the exact best318 reproduction runner.
@@ -139,11 +149,45 @@ def install_legacy_modules(
     exec(compile(detail_source.split(marker, 1)[0], detail_module.__file__, "exec"), detail_module.__dict__)
     legacy_val.Detail_Net_attn_block = detail_module.Detail_Net_attn_block
     patch_legacy_detail_forward(detail_module)
-    if use_multi_head_direct:
+    if use_pre_detect_p4_direct:
+        patch_pre_detect_p4_direct(legacy_val)
+    elif use_multi_head_direct:
         patch_multi_head_direct(legacy_val)
     elif use_fusion_alpha:
         patch_fusion_alpha(legacy_val)
     return legacy_val
+
+
+def patch_pre_detect_p4_direct(legacy_val) -> None:
+    """Fuse Detail into the 128-channel P4 neck tensor before Detect.
+
+    The original ZIP implementation hooks ``Detect.cv3[1][1]`` and therefore
+    sees a 64-channel tensor.  This variant hooks model layer 18, the P4 C2f
+    that feeds Detect, projects ``128 + 3`` channels back to 128, and runs the
+    complete P4 classification branch.  Box regression remains untouched.
+    """
+    original = textwrap.dedent(inspect.getsource(legacy_val.BGD_YOLO._predict_once))
+    needle = (
+        "        out = m.cv3[self.head_dict[self.head_select]][2](concat_feature.to("
+        "m.cv3[self.head_dict[self.head_select]][2].weight.dtype)).squeeze(1)\n"
+        "        x[1][self.head_dict[self.head_select]][:, -1, ...] = out"
+    )
+    replacement = (
+        "        selected_level = self.head_dict[self.head_select]\n"
+        "        classifier = m.cv3[selected_level]\n"
+        "        classifier_dtype = next(classifier.parameters()).dtype\n"
+        "        out = classifier(concat_feature.to(classifier_dtype)).squeeze(1)\n"
+        "        x[1][selected_level][:, -1, ...] = out"
+    )
+    if original.count(needle) != 1:
+        raise RuntimeError("Could not uniquely patch the pre-Detect P4 fusion assignment")
+    namespace = dict(legacy_val.__dict__)
+    exec(compile(original.replace(needle, replacement),
+                 "<best318-pre-detect-p4-direct-predict-once>", "exec"), namespace)
+    patched = namespace["_predict_once"]
+    patched.__module__ = legacy_val.__name__
+    patched.__qualname__ = "BGD_YOLO._predict_once"
+    legacy_val.BGD_YOLO._predict_once = patched
 
 
 def patch_fusion_alpha(legacy_val) -> None:
@@ -288,11 +332,12 @@ def grad_enabled_318_predict_once(detection_model, images, profile=False, visual
 
 
 def build_model(args: argparse.Namespace, legacy_val):
+    target_layers = [18] if args.pre_detect_p4_direct else [-1]
     model = legacy_val.BGD_YOLO(
         str(args.yolo_weight),
         model_weight_only_yolo=True,
         detail_weight=str(args.detail_weight),
-        target_layers=[-1],
+        target_layers=target_layers,
         detail_mode=True,
         conf_threshold=args.candidate_conf,
         iou_threshold=0.5,
@@ -304,7 +349,14 @@ def build_model(args: argparse.Namespace, legacy_val):
     detail = model.detail_model
     # These layers did not belong to the independent Detail classifier
     # checkpoint; best318 also created them freshly for joint training.
-    if args.multi_head_direct:
+    if args.pre_detect_p4_direct:
+        feature_channels = int(detect.cv3[level][0].conv.in_channels)
+        detail.conv_for_yolo = torch.nn.Conv2d(
+            feature_channels + 3, feature_channels, 3, padding=1
+        )
+        detail.bn_for_yolo = torch.nn.BatchNorm2d(feature_channels)
+        detail.relu_for_yolo = torch.nn.ReLU()
+    elif args.multi_head_direct:
         head_names = list(dict.fromkeys(args.multi_heads))
         head_indices = [head_dict[name] for name in head_names]
         feature_channels = [int(detect.cv3[index][2].in_channels) for index in head_indices]
@@ -333,12 +385,15 @@ def build_model(args: argparse.Namespace, legacy_val):
     model.model.detail_model = detail
     fusion_config = {
         "method": (
-            "best318_framework_multi_head_direct_v1"
-            if args.multi_head_direct else (
+            "best318_framework_pre_detect_p4_direct_v1"
+            if args.pre_detect_p4_direct else (
+                "best318_framework_multi_head_direct_v1"
+                if args.multi_head_direct else (
                 "best318_framework_direct_fusion_v1"
                 if args.direct_fusion else (
                     "best318_framework_learnable_logit_alpha_v1"
                     if args.learnable_alpha else "best318_framework_fixed_logit_alpha_v1"
+                )
                 )
             )
         ),
@@ -348,16 +403,19 @@ def build_model(args: argparse.Namespace, legacy_val):
         "candidate_conf": float(args.candidate_conf),
         "head_select": args.head_select,
         "head_selects": list(args.multi_heads) if args.multi_head_direct else [args.head_select],
-        "target_layers": [-1],
+        "target_layers": target_layers,
         "fusion": (
-            "zip_fused_logit at every selected Detect level (direct replacement)"
-            if args.multi_head_direct else (
+            "P4 neck C2f (128ch) + spatial Detail (3ch), 131->128, direct P4 cls replacement"
+            if args.pre_detect_p4_direct else (
+                "zip_fused_logit at every selected Detect level (direct replacement)"
+                if args.multi_head_direct else (
                 "zip_fused_logit (original direct replacement)"
                 if args.direct_fusion else "base_logit + alpha * (zip_fused_logit - base_logit)"
+                )
             )
         ),
     }
-    if not args.direct_fusion and not args.multi_head_direct:
+    if not args.direct_fusion and not args.multi_head_direct and not args.pre_detect_p4_direct:
         if args.learnable_alpha:
             initial_alpha = torch.tensor(float(args.fusion_alpha), device=device, dtype=dtype)
             model.model.register_parameter(
@@ -397,6 +455,7 @@ def load_joint_checkpoint(args: argparse.Namespace):
         "best318_framework_learnable_logit_alpha_v1",
         "best318_framework_direct_fusion_v1",
         "best318_framework_multi_head_direct_v1",
+        "best318_framework_pre_detect_p4_direct_v1",
     }
     if not isinstance(config, dict) or config.get("method") not in supported_methods:
         raise RuntimeError(f"Not a supported best318 joint checkpoint: {args.checkpoint}")
@@ -424,6 +483,8 @@ def load_joint_checkpoint(args: argparse.Namespace):
         wrapper.multi_head_indices = [head_dict[name] for name in wrapper.multi_head_names]
         detect = detection_model.model[-1]
         wrapper.m_layers = [detect.cv3[index][1] for index in wrapper.multi_head_indices]
+    elif config["method"] == "best318_framework_pre_detect_p4_direct_v1":
+        wrapper.m_layers = [detection_model.model[18]]
     wrapper.validator = None
     wrapper.batch = None
     return model
@@ -465,15 +526,23 @@ def print_configuration(args: argparse.Namespace, model) -> None:
 
 def main() -> None:
     args = parse_args()
-    if args.direct_fusion and args.multi_head_direct:
-        raise ValueError("--direct-fusion and --multi-head-direct are mutually exclusive")
+    direct_modes = sum(bool(value) for value in (
+        args.direct_fusion, args.multi_head_direct, args.pre_detect_p4_direct
+    ))
+    if direct_modes > 1:
+        raise ValueError(
+            "--direct-fusion, --multi-head-direct, and --pre-detect-p4-direct "
+            "are mutually exclusive"
+        )
+    if args.pre_detect_p4_direct and args.head_select != "mid":
+        raise ValueError("--pre-detect-p4-direct requires --head-select mid (P4)")
     if args.multi_head_direct and len(set(args.multi_heads)) < 2:
         raise ValueError("--multi-head-direct requires at least two distinct heads")
-    if args.learnable_alpha and (args.direct_fusion or args.multi_head_direct):
+    if args.learnable_alpha and direct_modes:
         raise ValueError("--learnable-alpha cannot be combined with a direct-fusion mode")
     if args.resume_training and (args.mode != "train" or args.checkpoint is None):
         raise ValueError("--resume-training requires train mode and --checkpoint")
-    if not args.direct_fusion and not args.multi_head_direct:
+    if not direct_modes:
         valid_alpha = (
             0.0 < args.fusion_alpha < 1.0
             if args.learnable_alpha else 0.0 <= args.fusion_alpha <= 1.0
@@ -495,15 +564,16 @@ def main() -> None:
         legacy_val = install_legacy_modules(
             args.archive,
             directory,
-            use_fusion_alpha=not args.direct_fusion and not args.multi_head_direct,
+            use_fusion_alpha=not direct_modes,
             use_multi_head_direct=args.multi_head_direct,
+            use_pre_detect_p4_direct=args.pre_detect_p4_direct,
         )
         model = load_joint_checkpoint(args) if args.checkpoint is not None else build_model(args, legacy_val)
         print_configuration(args, model)
 
         if args.mode == "val":
             metrics = model.val(
-                data=str(args.data), split=args.split, imgsz=640,
+                data=str(args.data), split=args.split, imgsz=args.imgsz,
                 conf=args.eval_conf, iou=args.eval_iou, batch=args.eval_batch,
                 workers=args.workers, device=args.device,
                 project=str(ROOT / "experiments" / "runs"), name=args.name,
@@ -530,7 +600,7 @@ def main() -> None:
                 for key, value in vars(args).items()
                 if not (
                     key == "fusion_alpha"
-                    and (args.direct_fusion or args.multi_head_direct)
+                    and direct_modes
                 )
             }
             wandb_run = wandb.init(
@@ -544,10 +614,13 @@ def main() -> None:
                 tags=(
                     "best318-framework", "independent-pretraining",
                     (
-                        "multi-head-direct" if args.multi_head_direct
+                        "pre-detect-p4-direct" if args.pre_detect_p4_direct
                         else (
-                            "direct-fusion" if args.direct_fusion else (
-                                "learnable-alpha" if args.learnable_alpha else "fixed-alpha"
+                            "multi-head-direct" if args.multi_head_direct
+                            else (
+                                "direct-fusion" if args.direct_fusion else (
+                                    "learnable-alpha" if args.learnable_alpha else "fixed-alpha"
+                                )
                             )
                         )
                     ),
@@ -574,7 +647,7 @@ def main() -> None:
                 warmup_epochs=args.warmup_epochs,
                 warmup_momentum=args.warmup_momentum,
                 warmup_bias_lr=args.warmup_bias_lr, amp=args.amp,
-                batch=args.batch, imgsz=640, workers=args.workers, device=args.device,
+                batch=args.batch, imgsz=args.imgsz, workers=args.workers, device=args.device,
                 patience=args.patience, save_period=args.save_period,
                 project=str(ROOT / "experiments" / "runs"), name=args.name,
                 rect=args.rect_train, **geometry, **train_kwargs,
