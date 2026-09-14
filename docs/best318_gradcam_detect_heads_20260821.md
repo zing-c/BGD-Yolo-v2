@@ -1,5 +1,10 @@
 # Best318-era Grad-CAM Detect-head experiments (2026-08-21)
 
+> **Archived legacy results:** these runs predate the corrected in-place Detail scatter,
+> `[x,y] -> BCHW [y,x]` mapping, and scale-aware P3/P4/P5 patch support. Use
+> [`CORRECTED_SINGLE_HEAD_SUM_RESULTS.md`](CORRECTED_SINGLE_HEAD_SUM_RESULTS.md) for the
+> corrected no-alpha single-head ablation used in current comparisons.
+
 This snapshot records four 50-epoch whole-network fine-tuning runs derived from
 the independent YOLO and Detail checkpoints that preceded `best318.pt`.
 

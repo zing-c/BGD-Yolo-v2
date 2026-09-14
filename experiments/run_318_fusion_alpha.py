@@ -32,6 +32,7 @@ import torch
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_YOLO = ROOT / "yolo-runs" / "train" / "train10" / "weights" / "best.pt"
 DEFAULT_DETAIL = ROOT / "run" / "detail_net_attn.pt"
+DEFAULT_COMPRESSED_DETAIL = ROOT / "run" / "detail_net_atten" / "zip_compressed_d12_v1.pt"
 DEFAULT_ARCHIVE = ROOT / "what is code.zip"
 DEFAULT_DATA = ROOT / "experiments" / "bg_local.yaml"
 
@@ -49,6 +50,15 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--yolo-weight", type=Path, default=DEFAULT_YOLO)
     parser.add_argument("--detail-weight", type=Path, default=DEFAULT_DETAIL)
+    parser.add_argument(
+        "--detail-architecture",
+        choices=("historical_wide", "zip_compressed_d12_v1"),
+        default="historical_wide",
+        help=(
+            "Detail encoder implementation. The default reproduces Golden; "
+            "zip_compressed_d12_v1 enables the controlled lightweight-Detail ablation."
+        ),
+    )
     parser.add_argument("--archive", type=Path, default=DEFAULT_ARCHIVE)
     parser.add_argument("--data", type=Path, default=DEFAULT_DATA)
     parser.add_argument("--fusion-alpha", type=float, default=0.5)
@@ -61,11 +71,34 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--direct-fusion", action="store_true",
-        help="use the original best318 direct logit replacement without introducing fusion_alpha",
+        help="reproduce the original best318 direct replacement, including its legacy scatter behavior",
+    )
+    parser.add_argument(
+        "--corrected-direct-fusion", action="store_true",
+        help=(
+            "use single-head direct replacement with a corrected Detail scatter: "
+            "write features in-place and map center coordinates from [x, y] to "
+            "feature-map indexing [y, x]"
+        ),
+    )
+    parser.add_argument(
+        "--scatter-reduce", choices=("sum", "mean"), default="sum",
+        help=(
+            "aggregation for overlapping Detail patches in corrected single-head "
+            "Direct mode; mean divides each feature-map location by its coverage count"
+        ),
     )
     parser.add_argument(
         "--multi-head-direct", action="store_true",
         help="directly fuse every head in --multi-heads without introducing fusion_alpha",
+    )
+    parser.add_argument(
+        "--multi-head-scale-aware", action="store_true",
+        help=(
+            "resize the 4x4 Detail output before multi-head scatter so a 64x64 "
+            "crop occupies 64/stride cells at each level (P3=8, P4=4, P5=2 "
+            "for imgsz=640); requires --multi-head-direct"
+        ),
     )
     parser.add_argument(
         "--pre-detect-p4-direct", action="store_true",
@@ -118,7 +151,9 @@ def parse_args() -> argparse.Namespace:
 def install_legacy_modules(
     archive_path: Path,
     directory: str,
+    detail_architecture: str = "historical_wide",
     use_fusion_alpha: bool = True,
+    use_corrected_direct_fusion: bool = False,
     use_multi_head_direct: bool = False,
     use_pre_detect_p4_direct: bool = False,
 ):
@@ -136,26 +171,134 @@ def install_legacy_modules(
     importlib.import_module("Resnet6")
     importlib.import_module("gradcam")
     legacy_val = importlib.import_module("val")
-    # The archived ZIP contains the later compressed Detail constructor, while
-    # best318 used the historical wide 16/32/64/128 constructor that remains in
-    # the project root.  Load that stable class under its original module name.
-    detail_source = (ROOT / "Resnet6.py").read_text(encoding="utf-8")
-    marker = "# Active public Detail implementation."
-    if marker not in detail_source:
-        raise RuntimeError("Could not locate the historical wide Detail definition")
-    detail_module = types.ModuleType("Resnet6")
-    detail_module.__file__ = str(ROOT / "Resnet6.py")
-    sys.modules["Resnet6"] = detail_module
-    exec(compile(detail_source.split(marker, 1)[0], detail_module.__file__, "exec"), detail_module.__dict__)
-    legacy_val.Detail_Net_attn_block = detail_module.Detail_Net_attn_block
-    patch_legacy_detail_forward(detail_module)
+    if detail_architecture == "historical_wide":
+        # The archived ZIP contains the later compressed Detail constructor,
+        # while Golden used the historical wide 16/32/64/128 constructor that
+        # remains before the public-implementation marker in Resnet6.py.
+        detail_source = (ROOT / "Resnet6.py").read_text(encoding="utf-8")
+        marker = "# Active public Detail implementation."
+        if marker not in detail_source:
+            raise RuntimeError("Could not locate the historical wide Detail definition")
+        detail_module = types.ModuleType("Resnet6")
+        detail_module.__file__ = str(ROOT / "Resnet6.py")
+        sys.modules["Resnet6"] = detail_module
+        exec(
+            compile(detail_source.split(marker, 1)[0], detail_module.__file__, "exec"),
+            detail_module.__dict__,
+        )
+        legacy_val.Detail_Net_attn_block = detail_module.Detail_Net_attn_block
+        patch_legacy_detail_forward(detail_module)
+    elif detail_architecture == "zip_compressed_d12_v1":
+        from detail_model import Detail_Net_attn_block
+
+        legacy_val.Detail_Net_attn_block = Detail_Net_attn_block
+    else:
+        raise ValueError(f"Unsupported Detail architecture: {detail_architecture}")
     if use_pre_detect_p4_direct:
         patch_pre_detect_p4_direct(legacy_val)
     elif use_multi_head_direct:
         patch_multi_head_direct(legacy_val)
+    elif use_corrected_direct_fusion:
+        patch_corrected_single_head_direct(legacy_val)
     elif use_fusion_alpha:
         patch_fusion_alpha(legacy_val)
     return legacy_val
+
+
+def patch_corrected_single_head_direct(legacy_val) -> None:
+    """Correct and scale-align the single-head Detail scatter without alpha.
+
+    ``find_max_heatmap_center_torch`` returns centers in ``[x, y]`` order,
+    whereas a BCHW tensor must be indexed spatially as ``[y, x]``.  The ZIP
+    implementation also discarded the result of the out-of-place ``add``.
+    This patch fixes both issues and resizes the nominal 64x64 crop feature to
+    cover ``64 / stride`` grid cells (P3=8, P4=4, P5=2), while preserving the
+    original Detect-internal hook and direct classification-logit replacement.
+    """
+    original = textwrap.dedent(inspect.getsource(legacy_val.BGD_YOLO._predict_once))
+    start_marker = "        detail_feature = torch.zeros([B, 3, self.activations[0].size()[2]"
+    end_marker = "\n\n\n        concat_feature"
+    if original.count(start_marker) != 1:
+        raise RuntimeError("Could not uniquely locate the legacy single-head scatter block")
+    start = original.index(start_marker)
+    end = original.index(end_marker, start)
+    new = textwrap.indent(textwrap.dedent("""
+        detail_feature = torch.zeros(
+            [B, 3, self.activations[0].size(2), self.activations[0].size(3)]
+        ).to(self.device)
+        feature_h = self.activations[0].size(2)
+        feature_w = self.activations[0].size(3)
+        resize_y = input_shape[2] / feature_h
+        resize_x = input_shape[3] / feature_w
+        patch_h = max(1, int(round(64 / resize_y)))
+        patch_w = max(1, int(round(64 / resize_x)))
+
+        runtime_config = getattr(self.model, "bgd_318_alpha_config", {})
+        scatter_reduce = (
+            runtime_config.get("scatter_reduce", "sum")
+            if isinstance(runtime_config, dict) else "sum"
+        )
+        if scatter_reduce not in {"sum", "mean"}:
+            raise RuntimeError(f"Unsupported corrected scatter reduction: {scatter_reduce}")
+        detail_count = (
+            torch.zeros([B, 1, feature_h, feature_w]).to(self.device)
+            if scatter_reduce == "mean" else None
+        )
+
+        current_box_idx = 0
+        for b in range(B):
+            if idx2b[b] is None:
+                continue
+            detail_slice = range(current_box_idx, idx2b[b])
+            detail4batch = detail_results[detail_slice]
+            current_box_idx = idx2b[b]
+            for ib in range(len(detail4batch)):
+                current_box_output = detail4batch[ib]
+                center_x = int(torch.round(centers[b][ib, 0] / resize_x).item())
+                center_y = int(torch.round(centers[b][ib, 1] / resize_y).item())
+                if current_box_output.shape[-2:] != (patch_h, patch_w):
+                    detail_patch = current_box_output.unsqueeze(0)
+                    if patch_h <= current_box_output.size(-2) and patch_w <= current_box_output.size(-1):
+                        input_h, input_w = current_box_output.shape[-2:]
+                        if input_h % patch_h == 0 and input_w % patch_w == 0:
+                            kernel_h = input_h // patch_h
+                            kernel_w = input_w // patch_w
+                            detail_patch = torch.nn.functional.avg_pool2d(
+                                detail_patch,
+                                kernel_size=(kernel_h, kernel_w),
+                                stride=(kernel_h, kernel_w),
+                            )
+                        else:
+                            detail_patch = torch.nn.functional.interpolate(
+                                detail_patch, size=(patch_h, patch_w), mode="area"
+                            )
+                    else:
+                        detail_patch = torch.nn.functional.interpolate(
+                            detail_patch, size=(patch_h, patch_w), mode="bilinear",
+                            align_corners=False
+                        )
+                    current_box_output = detail_patch.squeeze(0)
+                y0 = max(0, min(center_y - patch_h // 2, feature_h - patch_h))
+                x0 = max(0, min(center_x - patch_w // 2, feature_w - patch_w))
+                detail_feature[
+                    b, :, y0:y0 + patch_h, x0:x0 + patch_w
+                ].add_(current_box_output)
+                if detail_count is not None:
+                    detail_count[
+                        b, :, y0:y0 + patch_h, x0:x0 + patch_w
+                    ].add_(1.0)
+
+        if detail_count is not None:
+            detail_feature = detail_feature / detail_count.clamp_min(1.0)
+    """).strip("\n"), "        ")
+    namespace = dict(legacy_val.__dict__)
+    exec(compile(original[:start] + new + original[end:],
+                 "<best318-corrected-scaleaware-single-head-direct-predict-once>",
+                 "exec"), namespace)
+    patched = namespace["_predict_once"]
+    patched.__module__ = legacy_val.__name__
+    patched.__qualname__ = "BGD_YOLO._predict_once"
+    legacy_val.BGD_YOLO._predict_once = patched
 
 
 def patch_pre_detect_p4_direct(legacy_val) -> None:
@@ -227,7 +370,12 @@ def patch_multi_head_direct(legacy_val) -> None:
     One backward pass captures ordered P3/P4/P5 activations and gradients. The
     resulting CAMs are aggregated once for crop localization; Detail is run
     once, then its features are scattered and projected independently at each
-    requested feature-map scale.
+    requested feature-map scale. New scale-aware models resize the nominal
+    4x4 Detail feature to cover ``64 / stride`` cells (P3=8, P4=4, P5=2).
+    Centers returned as ``[x, y]`` are mapped to BCHW spatial indices as
+    ``[y, x]``. Checkpoints explicitly tagged with legacy/fixed-4x4 scatter
+    retain their historical placement so previously reported results remain
+    reproducible.
     """
     original = textwrap.dedent(inspect.getsource(legacy_val.BGD_YOLO._predict_once))
     start_marker = "        detail_feature = torch.zeros([B, 3, self.activations[0].size()[2]"
@@ -242,6 +390,16 @@ def patch_multi_head_direct(legacy_val) -> None:
             ):
                 raise RuntimeError("Not all requested Detect head hooks produced activations")
 
+            runtime_config = getattr(self.model, "bgd_318_alpha_config", {})
+            legacy_xy_transpose = (
+                isinstance(runtime_config, dict)
+                and runtime_config.get("scatter") == "legacy"
+            )
+            scale_aware_scatter = (
+                isinstance(runtime_config, dict)
+                and runtime_config.get("multi_head_scale_aware", False)
+            )
+
             for slot, (level_index, activation) in enumerate(zip(
                 self.multi_head_indices, self.activations
             )):
@@ -251,7 +409,10 @@ def patch_multi_head_direct(legacy_val) -> None:
                     device=self.device,
                     dtype=detail_results.dtype,
                 )
-                resize = input_shape[3] / feature_w
+                resize_y = input_shape[2] / feature_h
+                resize_x = input_shape[3] / feature_w
+                patch_h = max(1, int(round(64 / resize_y))) if scale_aware_scatter else 4
+                patch_w = max(1, int(round(64 / resize_x))) if scale_aware_scatter else 4
                 current_box_idx = 0
                 for b in range(B):
                     if idx2b[b] is None:
@@ -259,18 +420,51 @@ def patch_multi_head_direct(legacy_val) -> None:
                     detail_slice = range(current_box_idx, idx2b[b])
                     detail4batch = detail_results[detail_slice]
                     current_box_idx = idx2b[b]
-                    center_tensor = centers[b] / resize
                     for ib, current_box_output in enumerate(detail4batch):
-                        current_center = center_tensor[ib]
-                        fixed_center = [
-                            int(max(2, min(current_center[0], feature_h - 3))),
-                            int(max(2, min(current_center[1], feature_w - 3))),
-                        ]
-                        detail_feature[
-                            b, :,
-                            max(fixed_center[0] - 2, 0):min(fixed_center[0] + 2, feature_h - 1),
-                            max(fixed_center[1] - 2, 0):min(fixed_center[1] + 2, feature_w - 1),
-                        ].add_(current_box_output)
+                        center_x = centers[b][ib, 0] / resize_x
+                        center_y = centers[b][ib, 1] / resize_y
+                        if legacy_xy_transpose:
+                            center_h, center_w = center_x, center_y
+                        else:
+                            center_h, center_w = center_y, center_x
+                        if scale_aware_scatter:
+                            if current_box_output.shape[-2:] != (patch_h, patch_w):
+                                detail_patch = current_box_output.unsqueeze(0)
+                                input_h, input_w = current_box_output.shape[-2:]
+                                if patch_h <= input_h and patch_w <= input_w:
+                                    if input_h % patch_h == 0 and input_w % patch_w == 0:
+                                        detail_patch = torch.nn.functional.avg_pool2d(
+                                            detail_patch,
+                                            kernel_size=(input_h // patch_h, input_w // patch_w),
+                                            stride=(input_h // patch_h, input_w // patch_w),
+                                        )
+                                    else:
+                                        detail_patch = torch.nn.functional.interpolate(
+                                            detail_patch, size=(patch_h, patch_w), mode="area"
+                                        )
+                                else:
+                                    detail_patch = torch.nn.functional.interpolate(
+                                        detail_patch, size=(patch_h, patch_w), mode="bilinear",
+                                        align_corners=False,
+                                    )
+                                current_box_output = detail_patch.squeeze(0)
+                            fixed_y = int(torch.round(center_h).item())
+                            fixed_x = int(torch.round(center_w).item())
+                            y0 = max(0, min(fixed_y - patch_h // 2, feature_h - patch_h))
+                            x0 = max(0, min(fixed_x - patch_w // 2, feature_w - patch_w))
+                            detail_feature[
+                                b, :, y0:y0 + patch_h, x0:x0 + patch_w
+                            ].add_(current_box_output)
+                        else:
+                            # Preserve the fixed-4x4 geometry used by archived
+                            # multi-head checkpoints.
+                            fixed_y = int(max(2, min(center_h, feature_h - 3)))
+                            fixed_x = int(max(2, min(center_w, feature_w - 3)))
+                            detail_feature[
+                                b, :,
+                                max(fixed_y - 2, 0):min(fixed_y + 2, feature_h - 1),
+                                max(fixed_x - 2, 0):min(fixed_x + 2, feature_w - 1),
+                            ].add_(current_box_output)
 
                 concat_feature = torch.cat(
                     (detail_feature, activation.to(self.device)), dim=1
@@ -333,10 +527,14 @@ def grad_enabled_318_predict_once(detection_model, images, profile=False, visual
 
 def build_model(args: argparse.Namespace, legacy_val):
     target_layers = [18] if args.pre_detect_p4_direct else [-1]
+    compressed_detail = args.detail_architecture == "zip_compressed_d12_v1"
     model = legacy_val.BGD_YOLO(
         str(args.yolo_weight),
         model_weight_only_yolo=True,
-        detail_weight=str(args.detail_weight),
+        # The legacy loader expects a raw historical state_dict.  The compact
+        # checkpoint is metadata-wrapped, so load it below with strict coverage
+        # and shape reporting instead of silently accepting zero matched keys.
+        detail_weight=None if compressed_detail else str(args.detail_weight),
         target_layers=target_layers,
         detail_mode=True,
         conf_threshold=args.candidate_conf,
@@ -347,6 +545,11 @@ def build_model(args: argparse.Namespace, legacy_val):
     level = head_dict[args.head_select]
     detect = model.model.model[-1]
     detail = model.detail_model
+    detail_preload = None
+    if compressed_detail:
+        from gradcam_fusion import load_detail_encoder_pretrained
+
+        detail_preload = load_detail_encoder_pretrained(detail, args.detail_weight)
     # These layers did not belong to the independent Detail classifier
     # checkpoint; best318 also created them freshly for joint training.
     if args.pre_detect_p4_direct:
@@ -383,39 +586,101 @@ def build_model(args: argparse.Namespace, legacy_val):
     dtype = next(model.model.parameters()).dtype
     detail.to(device=device, dtype=dtype)
     model.model.detail_model = detail
-    fusion_config = {
-        "method": (
+    method = (
+        (
+            "best318_framework_multi_head_direct_lightdetail_d12_scaleaware_sum_v3"
+            if compressed_detail
+            else "best318_framework_multi_head_direct_scaleaware_sum_v3"
+        )
+        if args.multi_head_direct and args.multi_head_scale_aware
+        else (
+        "best318_framework_multi_head_direct_lightdetail_d12_xycorrected_v2"
+        if args.multi_head_direct and compressed_detail
+        else (
             "best318_framework_pre_detect_p4_direct_v1"
             if args.pre_detect_p4_direct else (
-                "best318_framework_multi_head_direct_v1"
+                "best318_framework_multi_head_direct_xycorrected_v2"
                 if args.multi_head_direct else (
-                "best318_framework_direct_fusion_v1"
-                if args.direct_fusion else (
-                    "best318_framework_learnable_logit_alpha_v1"
-                    if args.learnable_alpha else "best318_framework_fixed_logit_alpha_v1"
-                )
+                    (
+                        "best318_framework_corrected_single_head_direct_mean_scaleaware_v4"
+                        if args.scatter_reduce == "mean"
+                        else "best318_framework_corrected_single_head_direct_scaleaware_v3"
+                    )
+                    if args.corrected_direct_fusion else (
+                        "best318_framework_direct_fusion_v1"
+                        if args.direct_fusion else (
+                            "best318_framework_learnable_logit_alpha_v1"
+                            if args.learnable_alpha else "best318_framework_fixed_logit_alpha_v1"
+                        )
+                    )
                 )
             )
-        ),
+        ))
+    )
+    fusion_config = {
+        "method": method,
         "yolo_weight": str(args.yolo_weight.resolve()),
         "detail_weight": str(args.detail_weight.resolve()),
+        "detail_architecture": args.detail_architecture,
+        "detail_encoder_parameters": sum(
+            parameter.numel() for name, parameter in detail.named_parameters()
+            if not name.startswith("conv_for_yolo") and not name.startswith("bn_for_yolo")
+        ),
         "initializes_from_best318": False,
         "candidate_conf": float(args.candidate_conf),
         "head_select": args.head_select,
         "head_selects": list(args.multi_heads) if args.multi_head_direct else [args.head_select],
+        "multi_head_scale_aware": bool(
+            args.multi_head_direct and args.multi_head_scale_aware
+        ),
         "target_layers": target_layers,
+        "scatter": (
+            "in-place scale-aware Detail scatter (64/stride grid support) with center [x,y] mapped to BCHW [y,x]"
+            if args.corrected_direct_fusion else (
+                "in-place scale-aware multi-head Detail scatter (P3=8, P4=4, P5=2 at 640) with sum reduction and center [x,y] mapped to BCHW [y,x]"
+                if args.multi_head_direct and args.multi_head_scale_aware else (
+                    "in-place 4x4 Detail scatter with center [x,y] mapped to BCHW [y,x]"
+                    if args.multi_head_direct else "legacy"
+                )
+            )
+        ),
+        "scatter_patch_hw": (
+            {"high": [8, 8], "mid": [4, 4], "low": [2, 2]}[args.head_select]
+            if args.corrected_direct_fusion and args.imgsz == 640 else (
+                {"high": [8, 8], "mid": [4, 4], "low": [2, 2]}
+                if args.multi_head_direct and args.multi_head_scale_aware and args.imgsz == 640
+                else None
+            )
+        ),
+        "scatter_reduce": (
+            args.scatter_reduce if args.corrected_direct_fusion else (
+                "sum" if args.multi_head_direct and args.multi_head_scale_aware else None
+            )
+        ),
         "fusion": (
             "P4 neck C2f (128ch) + spatial Detail (3ch), 131->128, direct P4 cls replacement"
             if args.pre_detect_p4_direct else (
                 "zip_fused_logit at every selected Detect level (direct replacement)"
                 if args.multi_head_direct else (
+                "zip_fused_logit (corrected Detail scatter, direct replacement)"
+                if args.corrected_direct_fusion else (
                 "zip_fused_logit (original direct replacement)"
                 if args.direct_fusion else "base_logit + alpha * (zip_fused_logit - base_logit)"
+                )
                 )
             )
         ),
     }
-    if not args.direct_fusion and not args.multi_head_direct and not args.pre_detect_p4_direct:
+    if detail_preload is not None:
+        fusion_config["detail_pretrained_coverage"] = float(
+            detail_preload["pretrained_coverage"]
+        )
+        fusion_config["detail_pretrained_tensors_loaded"] = len(detail_preload["loaded"])
+        fusion_config["detail_random_output_tensors"] = list(detail_preload["missing"])
+    if not (
+        args.direct_fusion or args.corrected_direct_fusion
+        or args.multi_head_direct or args.pre_detect_p4_direct
+    ):
         if args.learnable_alpha:
             initial_alpha = torch.tensor(float(args.fusion_alpha), device=device, dtype=dtype)
             model.model.register_parameter(
@@ -454,7 +719,15 @@ def load_joint_checkpoint(args: argparse.Namespace):
         "best318_framework_fixed_logit_alpha_v1",
         "best318_framework_learnable_logit_alpha_v1",
         "best318_framework_direct_fusion_v1",
+        "best318_framework_corrected_single_head_direct_v2",
+        "best318_framework_corrected_single_head_direct_scaleaware_v3",
+        "best318_framework_corrected_single_head_direct_mean_scaleaware_v4",
         "best318_framework_multi_head_direct_v1",
+        "best318_framework_multi_head_direct_lightdetail_d12_v1",
+        "best318_framework_multi_head_direct_xycorrected_v2",
+        "best318_framework_multi_head_direct_lightdetail_d12_xycorrected_v2",
+        "best318_framework_multi_head_direct_scaleaware_sum_v3",
+        "best318_framework_multi_head_direct_lightdetail_d12_scaleaware_sum_v3",
         "best318_framework_pre_detect_p4_direct_v1",
     }
     if not isinstance(config, dict) or config.get("method") not in supported_methods:
@@ -477,7 +750,14 @@ def load_joint_checkpoint(args: argparse.Namespace):
     wrapper.conf_threshold = float(config["candidate_conf"])
     wrapper.head_select = config["head_select"]
     wrapper.target_layers = list(config["target_layers"])
-    if config["method"] == "best318_framework_multi_head_direct_v1":
+    if config["method"] in {
+        "best318_framework_multi_head_direct_v1",
+        "best318_framework_multi_head_direct_lightdetail_d12_v1",
+        "best318_framework_multi_head_direct_xycorrected_v2",
+        "best318_framework_multi_head_direct_lightdetail_d12_xycorrected_v2",
+        "best318_framework_multi_head_direct_scaleaware_sum_v3",
+        "best318_framework_multi_head_direct_lightdetail_d12_scaleaware_sum_v3",
+    }:
         head_dict = {"high": 0, "mid": 1, "low": 2}
         wrapper.multi_head_names = list(config["head_selects"])
         wrapper.multi_head_indices = [head_dict[name] for name in wrapper.multi_head_names]
@@ -527,19 +807,25 @@ def print_configuration(args: argparse.Namespace, model) -> None:
 def main() -> None:
     args = parse_args()
     direct_modes = sum(bool(value) for value in (
-        args.direct_fusion, args.multi_head_direct, args.pre_detect_p4_direct
+        args.direct_fusion, args.corrected_direct_fusion,
+        args.multi_head_direct, args.pre_detect_p4_direct
     ))
     if direct_modes > 1:
         raise ValueError(
-            "--direct-fusion, --multi-head-direct, and --pre-detect-p4-direct "
+            "--direct-fusion, --corrected-direct-fusion, --multi-head-direct, "
+            "and --pre-detect-p4-direct "
             "are mutually exclusive"
         )
     if args.pre_detect_p4_direct and args.head_select != "mid":
         raise ValueError("--pre-detect-p4-direct requires --head-select mid (P4)")
     if args.multi_head_direct and len(set(args.multi_heads)) < 2:
         raise ValueError("--multi-head-direct requires at least two distinct heads")
+    if args.multi_head_scale_aware and not args.multi_head_direct:
+        raise ValueError("--multi-head-scale-aware requires --multi-head-direct")
     if args.learnable_alpha and direct_modes:
         raise ValueError("--learnable-alpha cannot be combined with a direct-fusion mode")
+    if args.scatter_reduce != "sum" and not args.corrected_direct_fusion:
+        raise ValueError("--scatter-reduce mean requires --corrected-direct-fusion")
     if args.resume_training and (args.mode != "train" or args.checkpoint is None):
         raise ValueError("--resume-training requires train mode and --checkpoint")
     if not direct_modes:
@@ -564,7 +850,9 @@ def main() -> None:
         legacy_val = install_legacy_modules(
             args.archive,
             directory,
+            detail_architecture=args.detail_architecture,
             use_fusion_alpha=not direct_modes,
+            use_corrected_direct_fusion=args.corrected_direct_fusion,
             use_multi_head_direct=args.multi_head_direct,
             use_pre_detect_p4_direct=args.pre_detect_p4_direct,
         )
@@ -618,8 +906,11 @@ def main() -> None:
                         else (
                             "multi-head-direct" if args.multi_head_direct
                             else (
+                                "corrected-single-head-direct" if args.corrected_direct_fusion
+                                else (
                                 "direct-fusion" if args.direct_fusion else (
                                     "learnable-alpha" if args.learnable_alpha else "fixed-alpha"
+                                )
                                 )
                             )
                         )
