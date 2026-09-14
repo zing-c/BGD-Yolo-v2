@@ -2,6 +2,11 @@
 
 更新日期：2026-09-04
 
+> **更正说明（2026-09-14）：** P3/P4/P5 单头 Direct 已完成 scatter 原地写入、`[x,y]`
+> 到 BCHW `[y,x]` 坐标映射及尺度自适应修正。论文中的单头尺度消融请以
+> [`CORRECTED_SINGLE_HEAD_SUM_RESULTS.md`](CORRECTED_SINGLE_HEAD_SUM_RESULTS.md) 为准；本页旧单头
+> 数字仅保留作历史记录。
+
 本文档集中整理当前项目中**不使用 alpha**的 Direct 融合方法，包括 Detect 内部单头 Direct、
 P3–P5 多头 Direct，以及 Detect 前 P4 C2f Direct 扩展。内容依据当前实现、checkpoint、训练
 CSV 和复测日志整理，可作为论文方法、实验设置、消融实验和实现细节的基础材料。
