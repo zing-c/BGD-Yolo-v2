@@ -4,6 +4,8 @@
 
 [完整说明、文件用途与数值结论](../../DIRECT_INPUT64_HEADS_VISUALS_20260916.md) · [单头 Test 指标与权重位置](../../DIRECT_INPUT64_HEADS_TEST_RESULTS_20260916.md)
 
+新增：[00601 / 01979 清晰排版版](../direct_input64_head_visuals_20260916_pretty/README.md)。粗红框、大字白底矩形标签，比较图 / 流程图提供无损 PNG；只重绘样式，不改变检测或 CAM 数据。本目录旧版保持不变。
+
 ## 00586：外拍建筑玻璃，三个单头对比
 
 行：P3 / P4 / P5。列：融合前全局分支 / 实际 Grad-CAM / 原图 Detail 截图范围 / 最终检测。红框为预测或截图范围，绿框为标注。
