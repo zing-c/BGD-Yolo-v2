@@ -1,0 +1,397 @@
+{
+  "experiment": "geometry_v5_input64_sum_e50_lr1e4_r1",
+  "created_at": "2026-09-16T01:28:40.426631+09:00",
+  "status": "complete",
+  "started_at": "2026-09-15T20:27:53.951499+09:00",
+  "training_finished_at": "2026-09-16T00:33:16.229922+09:00",
+  "finished_at": "2026-09-16T00:35:09.733815+09:00",
+  "torch": "2.7.0+cu128",
+  "thop": "0.1.1",
+  "training_code_sha256": {
+    "experiments/run_318_fusion_alpha.py": "5efc1501e060f774a556ec514c2c798eecd97eb91f537f2d38f823df333cd11c",
+    "experiments/direct_geometry_fusion.py": "a51ef063ddc47f3c6494e2185c9815affe974dce81d6bcfaad450583ccd7465d",
+    "experiments/direct_geometry_monitor.py": "3d04cda11c16cd0eed400338b4d0d1fd21e837ab0e703fbff6500baabf13880e",
+    "ultralytics/yolo/data/direct_geometry.py": "258df72f162941487e4204236c8e21a1fb2b928284ee510f314e2d60ceba5527",
+    "ultralytics/yolo/data/base.py": "9aecc998d2e3366213596ed37b5c41cf9bd74d6dcb36b0c9462f88ea53a5228c",
+    "ultralytics/yolo/data/augment.py": "64fe584a91db80db15277a5d22a56c1a4c6c03c72ea82e26452f3b7a82b5a195",
+    "ultralytics/yolo/data/dataset.py": "2f97d10fdb80b52480e4ae3d7d8a92dda9eb3542a0046904e625c585ac36bf93",
+    "ultralytics/nn/tasks.py": "e889383330c985c027048240e2c67b72e3c065aa48e00ac589afcfd1bbebdc6c",
+    "ultralytics/yolo/engine/validator.py": "fb6a0faa2ba88697904b981ad59e53a7b39e19c678f07b905e8011ee02bb6635",
+    "ultralytics/yolo/engine/trainer.py": "53456ed6e9b1ff41dfae2fd886047f953dae62e1101938b2bdc748e42f4b5b4c",
+    "experiments/launch_geometry_v5_heads.py": "ed94febb214bedbe2924ada82a52b41dcc2e0a0885bcfc64c90eb4e7e4211e7a"
+  },
+  "protocol": {
+    "input_shape_for_flops": [
+      1,
+      3,
+      640,
+      640
+    ],
+    "detail_input_shape": [
+      1,
+      3,
+      64,
+      64
+    ],
+    "flops_per_mac": 2,
+    "flops_scope": "THOP supported module forward; not complete method FLOPs",
+    "excluded": [
+      "Grad-CAM backward",
+      "CAM normalization and resize",
+      "all-ones window search",
+      "Detail output resize GEMMs",
+      "scatter sum",
+      "second decode",
+      "NMS",
+      "unsupported functional operations including attention elementwise operations"
+    ],
+    "test_images": 1598,
+    "test_instances": 234,
+    "test_background_images": 1392,
+    "test_imgsz": 640,
+    "test_rectangular_letterbox": true,
+    "test_batch": 1,
+    "test_precision": "FP32",
+    "test_candidate_conf": 0.2,
+    "test_final_conf": 0.5,
+    "test_iou": 0.5,
+    "test_workers": 4,
+    "test_cpu_threads": 4,
+    "test_gpu": "NVIDIA RTX 6000 Ada Generation",
+    "test_timing_passes": 1,
+    "test_timing_scope": "validator inference average; excludes loader/preprocessing/final NMS",
+    "test_timing_is_repeated_controlled_benchmark": false
+  },
+  "heads": {
+    "p3": {
+      "head_select": "high",
+      "epochs": 50,
+      "best_val_epoch_1_based": 45,
+      "best_selection": "val mAP50 only",
+      "val_at_selection_from_training_csv": {
+        "precision": 0.95709,
+        "recall": 0.94076,
+        "map50": 0.97293,
+        "map75": 0.93775,
+        "map50_95": 0.9161
+      },
+      "test": {
+        "map50": 0.9418166389729706,
+        "map50_95": 0.8846312324835252,
+        "map75": 0.9106987741016319,
+        "precision": 0.9579833307434018,
+        "recall": 0.8931623931623932,
+        "speed_ms_per_image": {
+          "inference": 8.759546190388361,
+          "loss": 0.0034578153875205334,
+          "postprocess": 0.15284764453377084,
+          "preprocess": 0.10521734163668636
+        }
+      },
+      "parameters_training_architecture": 4209276,
+      "parameters_bn_fused_deployment": 4204076,
+      "native_detail_output_shape": [
+        1,
+        3,
+        4,
+        4
+      ],
+      "scatter_patch_hw": [
+        8,
+        8
+      ],
+      "flops": {
+        "yolo_unfused_forward": {
+          "thop_macs": 4097075200.0,
+          "thop_forward_gflops": 8.1941504
+        },
+        "detail_per_crop_forward": {
+          "thop_macs": 21805248.0,
+          "thop_forward_gflops": 0.043610496
+        },
+        "additional_fusion_and_classifier_forward": {
+          "thop_macs": 249036800.0,
+          "thop_forward_gflops": 0.4980736
+        },
+        "constant_unfused_forward_gflops_with_fusion": 8.692224,
+        "one_crop_unfused_forward_gflops": 8.735834495999999,
+        "yolo_bn_fused_deployment_forward": {
+          "thop_macs": 4042598400.0,
+          "thop_forward_gflops": 8.0851968
+        },
+        "constant_deployed_forward_gflops_with_fusion": 8.5832704,
+        "full_method_gflops": null,
+        "N": "number of actual native-resolution Detail crops"
+      },
+      "weights": {
+        "best_weight": {
+          "path_relative_to_project_root": "experiments/runs/best318_high_p3_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+          "bytes": 10303029,
+          "sha256": "03bbecbb8257ad933c8e381c8941e2b1f23dadcbad8f15ea5dcf172789357f7d",
+          "binary_uploaded_in_this_publication": false
+        },
+        "last_weight": {
+          "path_relative_to_project_root": "experiments/runs/best318_high_p3_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/last.pt",
+          "bytes": 10303029,
+          "sha256": "f5be572e6cc7a73a6443777a7cdfbd1f6245091d8b61a7d498c64a4a8388177a",
+          "binary_uploaded_in_this_publication": false
+        }
+      },
+      "configuration": {
+        "method": "best318_framework_corrected_single_head_direct_geometry_v5_input64",
+        "detail_architecture": "historical_wide",
+        "detail_encoder_parameters": 1159449,
+        "initializes_from_best318": false,
+        "candidate_conf": 0.2,
+        "head_select": "high",
+        "head_selects": [
+          "high"
+        ],
+        "multi_head_scale_aware": false,
+        "target_layers": [
+          -1
+        ],
+        "scatter": "fixed 64-input-pixel context at actual crop center; BCHW[y,x]; canvas clipping",
+        "scatter_patch_hw": [
+          8,
+          8
+        ],
+        "scatter_reduce": "sum",
+        "fusion": "zip_fused_logit (corrected Detail scatter, direct replacement)",
+        "geometry_version": 5,
+        "geometry_scatter_mode": "input64",
+        "track_cam_values": true,
+        "crop_size_source_hw": [
+          64,
+          64
+        ],
+        "cam_resize": "actual input (H,W), FP32 bilinear align_corners=False",
+        "cam_target": "sum of all original sigmoid classification scores",
+        "cam_gradients": "autograd.grad w.r.t. Detect activation only; preserve optimizer accumulation",
+        "source_geometry": "actual resize + four-tile Mosaic + axis-aligned affine + flip",
+        "window_size": "max(1, round(abs(source_to_input_axis_gain)*64)) independently for H/W"
+      },
+      "test_log_relative_to_project_root": "experiments/analysis/geometry_v5_input64_e50_r1/p3.test.log"
+    },
+    "p4": {
+      "head_select": "mid",
+      "epochs": 50,
+      "best_val_epoch_1_based": 9,
+      "best_selection": "val mAP50 only",
+      "val_at_selection_from_training_csv": {
+        "precision": 0.97067,
+        "recall": 0.94119,
+        "map50": 0.97379,
+        "map75": 0.94204,
+        "map50_95": 0.91472
+      },
+      "test": {
+        "map50": 0.935256142882769,
+        "map50_95": 0.8819242489958212,
+        "map75": 0.9146006851032884,
+        "precision": 0.9504504504504504,
+        "recall": 0.9017094017094017,
+        "speed_ms_per_image": {
+          "inference": 8.575550904112854,
+          "loss": 0.0034513998688087896,
+          "postprocess": 0.15016610691037136,
+          "preprocess": 0.10382741204788151
+        }
+      },
+      "parameters_training_architecture": 4209276,
+      "parameters_bn_fused_deployment": 4204076,
+      "native_detail_output_shape": [
+        1,
+        3,
+        4,
+        4
+      ],
+      "scatter_patch_hw": [
+        4,
+        4
+      ],
+      "flops": {
+        "yolo_unfused_forward": {
+          "thop_macs": 4097075200.0,
+          "thop_forward_gflops": 8.1941504
+        },
+        "detail_per_crop_forward": {
+          "thop_macs": 21805248.0,
+          "thop_forward_gflops": 0.043610496
+        },
+        "additional_fusion_and_classifier_forward": {
+          "thop_macs": 62259200.0,
+          "thop_forward_gflops": 0.1245184
+        },
+        "constant_unfused_forward_gflops_with_fusion": 8.3186688,
+        "one_crop_unfused_forward_gflops": 8.362279295999999,
+        "yolo_bn_fused_deployment_forward": {
+          "thop_macs": 4042598400.0,
+          "thop_forward_gflops": 8.0851968
+        },
+        "constant_deployed_forward_gflops_with_fusion": 8.2097152,
+        "full_method_gflops": null,
+        "N": "number of actual native-resolution Detail crops"
+      },
+      "weights": {
+        "best_weight": {
+          "path_relative_to_project_root": "experiments/runs/best318_mid_p4_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+          "bytes": 10303029,
+          "sha256": "ca1379869b5d1d5f99ab1d86bc895207a5227858d6e0be888e03e7ad0b412cff",
+          "binary_uploaded_in_this_publication": false
+        },
+        "last_weight": {
+          "path_relative_to_project_root": "experiments/runs/best318_mid_p4_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/last.pt",
+          "bytes": 10303029,
+          "sha256": "af8cf98742356d79e49a1d05dd79db8932362f4d37794089cbca5b7c9b5bdd16",
+          "binary_uploaded_in_this_publication": false
+        }
+      },
+      "configuration": {
+        "method": "best318_framework_corrected_single_head_direct_geometry_v5_input64",
+        "detail_architecture": "historical_wide",
+        "detail_encoder_parameters": 1159449,
+        "initializes_from_best318": false,
+        "candidate_conf": 0.2,
+        "head_select": "mid",
+        "head_selects": [
+          "mid"
+        ],
+        "multi_head_scale_aware": false,
+        "target_layers": [
+          -1
+        ],
+        "scatter": "fixed 64-input-pixel context at actual crop center; BCHW[y,x]; canvas clipping",
+        "scatter_patch_hw": [
+          4,
+          4
+        ],
+        "scatter_reduce": "sum",
+        "fusion": "zip_fused_logit (corrected Detail scatter, direct replacement)",
+        "geometry_version": 5,
+        "geometry_scatter_mode": "input64",
+        "track_cam_values": true,
+        "crop_size_source_hw": [
+          64,
+          64
+        ],
+        "cam_resize": "actual input (H,W), FP32 bilinear align_corners=False",
+        "cam_target": "sum of all original sigmoid classification scores",
+        "cam_gradients": "autograd.grad w.r.t. Detect activation only; preserve optimizer accumulation",
+        "source_geometry": "actual resize + four-tile Mosaic + axis-aligned affine + flip",
+        "window_size": "max(1, round(abs(source_to_input_axis_gain)*64)) independently for H/W"
+      },
+      "test_log_relative_to_project_root": "experiments/analysis/geometry_v5_input64_e50_r1/p4.test.log"
+    },
+    "p5": {
+      "head_select": "low",
+      "epochs": 50,
+      "best_val_epoch_1_based": 38,
+      "best_selection": "val mAP50 only",
+      "val_at_selection_from_training_csv": {
+        "precision": 0.98232,
+        "recall": 0.92163,
+        "map50": 0.97446,
+        "map75": 0.93407,
+        "map50_95": 0.9153
+      },
+      "test": {
+        "map50": 0.9430389183884542,
+        "map50_95": 0.8906249745165267,
+        "map75": 0.919773815739148,
+        "precision": 0.9513011416837688,
+        "recall": 0.8974358974358975,
+        "speed_ms_per_image": {
+          "inference": 8.753099489271715,
+          "loss": 0.0035234625557337296,
+          "postprocess": 0.15521989447602044,
+          "preprocess": 0.10861562697848628
+        }
+      },
+      "parameters_training_architecture": 4209276,
+      "parameters_bn_fused_deployment": 4204076,
+      "native_detail_output_shape": [
+        1,
+        3,
+        4,
+        4
+      ],
+      "scatter_patch_hw": [
+        2,
+        2
+      ],
+      "flops": {
+        "yolo_unfused_forward": {
+          "thop_macs": 4097075200.0,
+          "thop_forward_gflops": 8.1941504
+        },
+        "detail_per_crop_forward": {
+          "thop_macs": 21805248.0,
+          "thop_forward_gflops": 0.043610496
+        },
+        "additional_fusion_and_classifier_forward": {
+          "thop_macs": 15564800.0,
+          "thop_forward_gflops": 0.0311296
+        },
+        "constant_unfused_forward_gflops_with_fusion": 8.22528,
+        "one_crop_unfused_forward_gflops": 8.268890496,
+        "yolo_bn_fused_deployment_forward": {
+          "thop_macs": 4042598400.0,
+          "thop_forward_gflops": 8.0851968
+        },
+        "constant_deployed_forward_gflops_with_fusion": 8.1163264,
+        "full_method_gflops": null,
+        "N": "number of actual native-resolution Detail crops"
+      },
+      "weights": {
+        "best_weight": {
+          "path_relative_to_project_root": "experiments/runs/best318_low_p5_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+          "bytes": 10303029,
+          "sha256": "74af0b70567be09acd2473659427d843c1d7b063be39d5825efa94563d5fbaf0",
+          "binary_uploaded_in_this_publication": false
+        },
+        "last_weight": {
+          "path_relative_to_project_root": "experiments/runs/best318_low_p5_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/last.pt",
+          "bytes": 10303029,
+          "sha256": "8c9bb1fde24f6b6dfc60776a9cfc37c4b223544e8fd8241ff97504f6bce72225",
+          "binary_uploaded_in_this_publication": false
+        }
+      },
+      "configuration": {
+        "method": "best318_framework_corrected_single_head_direct_geometry_v5_input64",
+        "detail_architecture": "historical_wide",
+        "detail_encoder_parameters": 1159449,
+        "initializes_from_best318": false,
+        "candidate_conf": 0.2,
+        "head_select": "low",
+        "head_selects": [
+          "low"
+        ],
+        "multi_head_scale_aware": false,
+        "target_layers": [
+          -1
+        ],
+        "scatter": "fixed 64-input-pixel context at actual crop center; BCHW[y,x]; canvas clipping",
+        "scatter_patch_hw": [
+          2,
+          2
+        ],
+        "scatter_reduce": "sum",
+        "fusion": "zip_fused_logit (corrected Detail scatter, direct replacement)",
+        "geometry_version": 5,
+        "geometry_scatter_mode": "input64",
+        "track_cam_values": true,
+        "crop_size_source_hw": [
+          64,
+          64
+        ],
+        "cam_resize": "actual input (H,W), FP32 bilinear align_corners=False",
+        "cam_target": "sum of all original sigmoid classification scores",
+        "cam_gradients": "autograd.grad w.r.t. Detect activation only; preserve optimizer accumulation",
+        "source_geometry": "actual resize + four-tile Mosaic + axis-aligned affine + flip",
+        "window_size": "max(1, round(abs(source_to_input_axis_gain)*64)) independently for H/W"
+      },
+      "test_log_relative_to_project_root": "experiments/analysis/geometry_v5_input64_e50_r1/p5.test.log"
+    }
+  }
+}
