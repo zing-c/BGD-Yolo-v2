@@ -4,7 +4,7 @@
 
 | 文档 | 内容与使用范围 |
 |---|---|
-| [00601 / 01979：清晰排版可视化](assets/direct_input64_head_visuals_20260916_pretty/README.md) | 两张选定图片 × 当前三个独立单头；粗红框、大字白底标签、无损 PNG 流程图、全部 73 张原生 Detail 截图；只调整样式，原始 CAM / 检测不变，旧版保留 |
+| [00601 / 01979：清晰排版可视化](assets/direct_input64_head_visuals_20260916_pretty/README.md) | 两张选定图片 × 当前三个独立单头；粗红框、贴框的 broken glass + conf 红底白字标签、无损 PNG 流程图、全部 73 张原生 Detail 截图；只调整样式，原始 CAM / 检测不变，旧版保留 |
 | [当前 P3/P4/P5：Grad-CAM、Detail 截图与最终检测可视化](DIRECT_INPUT64_HEADS_VISUALS_20260916.md) | 六张 Test 图片 × 三个当前单头 best，真实热力图、全部 64×64 截图、conf>0.2 候选框、粗红最终框、同区域纹理对照；图片在 main/docs/assets/direct_input64_head_visuals_20260916_r1/ |
 | [本轮 Direct input64 修正版 P3/P4/P5：完整 Test、时间、参数量与 GFLOPs](DIRECT_INPUT64_HEADS_TEST_RESULTS_20260916.md) | 2026-09-16 完成的三个独立单头，各 50 epoch；含 CAM H/W、增强来源、截图中心与累积梯度修正；单次完整 Test 时间、实际权重参数与 forward GFLOPs、具体权重位置、CSV 和运行版本 hash |
 | [此前 xy/add 修正版单头与三头：Test + 统一推理时间](CORRECTED_DIRECT_HEADS_TEST_TIMING_20260915.md) | 旧运行版本；三轮统一延迟、GFLOPs 口径、Val 选权重、具体权重位置、P4 复测差异，不与本轮 input64 结果混用 |

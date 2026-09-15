@@ -12,7 +12,11 @@
   "model_inference_executed": false,
   "cam_values_modified": false,
   "coordinates_or_confidences_modified": false,
-  "white_fill": "caption and confidence badges only",
+  "white_fill": "caption badges only",
+  "prediction_label": "broken glass: {confidence:.3f}",
+  "prediction_label_fill": "red",
+  "prediction_label_text_color": "white",
+  "prediction_label_anchor": "touching box top edge; inside only at image top",
   "label_font": "DejaVu Sans Bold",
   "annotation_after_resize": true,
   "cases": [

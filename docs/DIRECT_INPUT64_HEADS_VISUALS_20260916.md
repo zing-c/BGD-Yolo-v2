@@ -8,12 +8,12 @@
 
 ## 用户选定的 00601 / 01979：清晰排版版
 
-新增[两张图片的清晰版预览首页](assets/direct_input64_head_visuals_20260916_pretty/README.md)。红框更粗，顶部标题与置信度标签放大，标签矩形内部填白；检测 / 截图区域内部不填白，保留真实纹理和 CAM。先缩放图片再绘制固定字号标记，同时提供无损 PNG。
+新增[两张图片的清晰版预览首页](assets/direct_input64_head_visuals_20260916_pretty/README.md)。红框更粗，检测标签使用常见的 `broken glass: 0.979` 红底白字样式，紧贴红框上边缘；顶部流程标题保持白底深色字。检测 / 截图区域内部不填色，保留真实纹理和 CAM。先缩放图片再绘制固定字号标记，同时提供无损 PNG。
 
 - 00601：[三个单头比较 JPG](assets/direct_input64_head_visuals_20260916_pretty/00601/comparison.jpg) / [PNG](assets/direct_input64_head_visuals_20260916_pretty/00601/comparison.png)；[P4 完整流程 PNG](assets/direct_input64_head_visuals_20260916_pretty/00601/p4/paper_overview.png)，有效 CAM，置信度 0.933→0.979。
 - 01979：[三个单头比较 JPG](assets/direct_input64_head_visuals_20260916_pretty/01979/comparison.jpg) / [PNG](assets/direct_input64_head_visuals_20260916_pretty/01979/comparison.png)；[P5 完整流程 PNG](assets/direct_input64_head_visuals_20260916_pretty/01979/p5/paper_overview.png)，有效 CAM，置信度实际为 0.995→0.958。
 
-这次只是重绘样式，未重新推理或调整方法。六组 metadata 与全部 73 张真实 64×64 截图和旧版逐字节一致，CAM 数值不变，零值仍明确标注。两张图片的 TP/FP/FN 均未改善，不能将美化当作性能提升。旧版目录保留不变。
+这次只是重绘样式，未重新推理或调整方法。六组 metadata 与全部 73 张真实 64×64 截图和旧版逐字节一致，CAM 数值不变，零值仍明确标注。两张图片的 TP/FP/FN 均未改善，不能将美化当作性能提升。最初 r1 目录保留不变；清晰版白底检测标签样式保留在 GitHub 历史提交 e8319e7。
 
 ## 看哪些图片
 
