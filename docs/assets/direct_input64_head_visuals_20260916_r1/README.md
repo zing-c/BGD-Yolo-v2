@@ -4,7 +4,7 @@
 
 [完整说明、文件用途与数值结论](../../DIRECT_INPUT64_HEADS_VISUALS_20260916.md) · [单头 Test 指标与权重位置](../../DIRECT_INPUT64_HEADS_TEST_RESULTS_20260916.md)
 
-新增：[00039 / 00586 / 00601 / 01979 清晰排版版](../direct_input64_head_visuals_20260916_pretty/README.md)。粗红框，`broken glass: 0.979` 大字红底白字检测标签紧贴框边缘，顶部流程标题保持白底；比较图 / 流程图提供无损 PNG。只重绘样式，不改变检测或 CAM 数据，本目录旧版保持不变。
+当前显示图已统一改为[无外部白边 / 文字版](../../DIRECT_INPUT64_BORDERLESS_VISUALS_20260916.md)，本目录和[用户选定四图](../direct_input64_head_visuals_20260916_pretty/README.md)都不加外部标题、白边、图例或拼图间隔；保留粗红框及贴框的 broken glass 红底白字。所有 metadata、CAM 数值、原生截图不变；旧显示版在 GitHub ca606ec 历史提交中保留。
 
 ## 00586：外拍建筑玻璃，三个单头对比
 
@@ -30,4 +30,4 @@
 
 每个图片编号下都有 `p3/`、`p4/`、`p5/`，包含热力图、真实截图、候选框、最终框、完整流程图和对应 metadata。`results.json` 汇总实际权重 hash、CAM 值、坐标与检测统计。JPG/PNG 图片均已列入发布；NPZ 数组和导出源码仅保留本地。
 
-注意：融合前是同一联合 checkpoint 的第一次全局 forward，不是独立 YOLO 基线。本批 6/18 CAM 全零，已标注，未伪造热点。这批样例融合前后 TP/FP/FN 未改善，只用于真实方法过程与纹理展示，不能作为消除误检的证据。
+注意：融合前是同一联合 checkpoint 的第一次全局 forward，不是独立 YOLO 基线。本批 6/18 CAM 全零，零值在完整 MD、metadata 和渲染 JSON 中注明；零值图片为干净原照片，不加字或伪造热点。这批样例融合前后 TP/FP/FN 未改善，只用于真实方法过程与纹理展示，不能作为消除误检的证据。六图流程的无文字顺序：GT、融合前、CAM、Detail 位置、融合后、第一张实际 Detail 输入。

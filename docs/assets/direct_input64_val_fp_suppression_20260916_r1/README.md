@@ -24,8 +24,8 @@ P5 在最终 conf=0.5 下的新例子：
 | 00657 | [热力图](00657/p5/actual_cam_overlay.jpg) | [实际截图](00657/p5/false_positive_detail_crops.jpg) | [PNG 目录](00657/p5/detail_crops_64/) | [候选框](00657/p5/all_candidates_conf_gt02.jpg) | [metadata](00657/p5/metadata.json) |
 | 02211 | [热力图](02211/p5/actual_cam_overlay.jpg) | [实际截图](02211/p5/false_positive_detail_crops.jpg) | [PNG 目录](02211/p5/detail_crops_64/) | [候选框](02211/p5/all_candidates_conf_gt02.jpg) | [metadata](02211/p5/metadata.json) |
 
-每张图的 `p3/`、`p4/`、`p5/` 均保留真实结果、完整流程 PNG、所有原生截图和 metadata。P3 在 00657/00770 的 CAM 全零，保持原样并标明回退；P4 在 02211 的误检没有消除，不能称所有头都有效。
+每张图的 `p3/`、`p4/`、`p5/` 均保留真实结果、完整流程 PNG、所有原生截图和 metadata。P3 在 00657/00770 的 CAM 全零，显示干净原照片；回退说明在本 MD 和 JSON，不给图片加字或热点。P4 在 02211 的误检没有消除，不能称所有头都有效。
 
-红框、贴框的 `broken glass: 0.579` 红底白字；检测区域不填色。上方 42 像素白色留边仅方便顶部标签显示，显示坐标相应偏移，原始图片坐标 / 分数 / CAM 不变。真实截图逐字节复制，放大预览采用 nearest-neighbor；误检候选截图可能只覆盖该错误框的一小部分，不假称整框裁剪。
+按用户要求，现已移除外部标题 / 说明 / 图例 / 分数侧栏、42 像素顶部留白以及拼图白色间隔，不加任何外边距。保留红框和图内贴框的 `broken glass: 0.579` 红底白字，区域不填色；顶部标签重叠时放在框内另一边缘，不改框坐标。原始坐标 / 分数 / CAM / 原生截图均未修改。截图预览采用 nearest-neighbor，整行排满且不补空白格；误检候选截图可能只覆盖错误框的一小部分，不假称整框裁剪。[无白边布局说明](../../DIRECT_INPUT64_BORDERLESS_VISUALS_20260916.md)：前后对比左前右后；六图流程依次 GT、融合前、CAM、Detail 位置、融合后、第一张实际输入。
 
 [渲染保真 JSON](render_manifest.json) · [完整 Val 筛查 JSON](../../results/direct_input64_val_fp_suppression_search_20260916.json) · [Test 00751/P5](../direct_input64_fp_suppression_20260916_r1/README.md) · [00601 等原选定图片](../direct_input64_head_visuals_20260916_pretty/README.md)

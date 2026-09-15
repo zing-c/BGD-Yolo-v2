@@ -6,20 +6,22 @@
 
 可以直接打开[图片目录的预览首页](assets/direct_input64_head_visuals_20260916_r1/README.md)，无需切换到实验分支。
 
+**当前上传版统一去除图片外部白边和文字**，原六图、用户选定四图、Test / Val 误检素材都已替换显示图，原链接不变。详见[无白边素材与无文字布局说明](DIRECT_INPUT64_BORDERLESS_VISUALS_20260916.md)。图内保留红框 / broken glass 红底白字标签，所有标题、指标说明、图例及零值说明移入 MD；原数据和原生截图不变。
+
 另行完整扫描当前三个单头的 Test 后，找到 [00751 / P5 真实误检置信度跌破 0.5 的例子](DIRECT_INPUT64_FP_SUPPRESSION_SEARCH_20260916.md)：迷彩衣服错误框 0.647→0.234，正确玻璃保留；[图片与实际 Detail 截图](assets/direct_input64_fp_suppression_20260916_r1/README.md)。该图是车内场景，不是外拍建筑；不改变下面原有六张样例的结论。
 
 进一步扫描完整 503 张 Val，新增 [00770 / 00657 / 02211 的 P5 误检抑制例子](DIRECT_INPUT64_VAL_FP_SUPPRESSION_20260916.md)：墙边 / 窗框 0.579→0.328、带孔面板 0.672→0.269，均保留正确玻璃；外拍反光窗户背景 0.590→0.304。图片和全部实际截图见 [Val 素材首页](assets/direct_input64_val_fp_suppression_20260916_r1/README.md)。00601/P3 的 0.558 误检前后未变，不能当改善正例；Val 和 Test 分开报告。
 
 ## 用户选定的 00039 / 00586 / 00601 / 01979：清晰排版版
 
-新增[四张图片的清晰版预览首页](assets/direct_input64_head_visuals_20260916_pretty/README.md)。红框更粗，检测标签使用常见的 `broken glass: 0.979` 红底白字样式，紧贴红框上边缘；顶部流程标题保持白底深色字。检测 / 截图区域内部不填色，保留真实纹理和 CAM。先缩放图片再绘制固定字号标记，同时提供无损 PNG。
+新增[四张图片的清晰版预览首页](assets/direct_input64_head_visuals_20260916_pretty/README.md)。红框更粗，检测标签为常见的 `broken glass: 0.979` 红底白字，紧贴框边且位于图片内部；不再加外部流程标题、白边或图例。检测 / 截图区域内部不填色，保留真实纹理和 CAM。先缩放图片再绘制标记，同时提供无损 PNG。
 
 - 00039：[三个单头比较 JPG](assets/direct_input64_head_visuals_20260916_pretty/00039/comparison.jpg) / [PNG](assets/direct_input64_head_visuals_20260916_pretty/00039/comparison.png)；[P4 完整流程 PNG](assets/direct_input64_head_visuals_20260916_pretty/00039/p4/paper_overview.png)，有效 CAM，正确框置信度 0.744→0.810。
 - 00586：[三个单头比较 JPG](assets/direct_input64_head_visuals_20260916_pretty/00586/comparison.jpg) / [PNG](assets/direct_input64_head_visuals_20260916_pretty/00586/comparison.png)；[P4 完整流程 PNG](assets/direct_input64_head_visuals_20260916_pretty/00586/p4/paper_overview.png)，有效 CAM，正确框置信度 0.916→0.958。
 - 00601：[三个单头比较 JPG](assets/direct_input64_head_visuals_20260916_pretty/00601/comparison.jpg) / [PNG](assets/direct_input64_head_visuals_20260916_pretty/00601/comparison.png)；[P4 完整流程 PNG](assets/direct_input64_head_visuals_20260916_pretty/00601/p4/paper_overview.png)，有效 CAM，置信度 0.933→0.979。
 - 01979：[三个单头比较 JPG](assets/direct_input64_head_visuals_20260916_pretty/01979/comparison.jpg) / [PNG](assets/direct_input64_head_visuals_20260916_pretty/01979/comparison.png)；[P5 完整流程 PNG](assets/direct_input64_head_visuals_20260916_pretty/01979/p5/paper_overview.png)，有效 CAM，置信度实际为 0.995→0.958。
 
-这次只是重绘样式，未重新推理或调整方法。十二组 metadata 与全部 134 张真实 64×64 截图和旧版逐字节一致，CAM 数值不变，零值仍明确标注。四张图片的 TP/FP/FN 均未改善，不能将美化当作性能提升。最初 r1 目录保留不变；00601/01979 的清晰版白底检测标签样式保留在 GitHub 历史提交 e8319e7。
+这次只是重绘样式，未重新推理或调整方法。十二组 metadata 与全部 134 张真实 64×64 截图和旧版逐字节一致，CAM 数值不变，零值在 MD / metadata / 渲染 JSON 中注明而不加图中文字。四张图片的 TP/FP/FN 均未改善，不能将美化当作性能提升。r1 和清晰版显示图当前均无外白边，带标题旧版在 ca606ec 历史提交保留；更早白底检测标签样式在 e8319e7 保留。
 
 ## 看哪些图片
 
@@ -53,7 +55,7 @@
 - `original.jpg`、`ground_truth.jpg`：原图与绿色标注。
 - `all_candidates_conf_gt02.jpg`：原 YOLO 第一次 forward 所有 pre-NMS、score >0.2 的候选框，**不是 NMS 后的框**。
 - `global_before_fusion.jpg`、`final_after_fusion.jpg`：融合前 / 后，均最终 conf=0.5、NMS IoU=0.5，粗红框、较大文字。
-- `actual_cam_overlay.jpg`：实际运行 CAM 映回原图的热力图；不更改 CAM target / 数值 / ReLU。
+- `actual_cam_overlay.jpg`：实际运行 CAM 映回原图的热力图；不更改 CAM target / 数值 / ReLU。零值显示干净原照片，零值说明仅在 MD / JSON。
 - `actual_cam_grayscale.png`：实际输入画布上的灰度 CAM；全零就是黑图。
 - `actual_cam_arrays.npz`（仅训练机本地）：原始 float32 CAM，包含 actual-input 和映射至原图两种坐标；未上传 GitHub。
 - `actual_detail_source_windows.jpg`：Detail 实际截图范围，在原图中画红框。
@@ -62,7 +64,7 @@
 - `detail_vs_global_same_region.jpg`：第一张真实 Detail 截图与实际压缩 YOLO 输入同一区域的纹理对照。
 - `actual_detail_inputs.npz`（仅训练机本地）：真实 ImageNet-normalized RGB 输入 tensor；反查原图截图后最大差值 ≤1e-5；未上传 GitHub。
 - `metadata.json`：实际矩阵、候选框、截图 xyxy、CAM 数值、前后检测及 TP/FP/FN（IoU≥0.5 贪心匹配）。
-- `paper_overview.jpg`：标注 / 融合前 / CAM / 实际截图位置 / 最终结果 / 第一张 Detail 输入六联图。
+- `paper_overview.jpg`：标注 / 融合前 / CAM / 实际截图位置 / 最终结果 / 第一张 Detail 输入六幅无缝横向图，无外部标题 / 间隔。
 
 目录根部 `results.json` 汇总 18 组结果与实际权重 SHA256。JPEG 为方便浏览缩小至最长边 1600；64×64 PNG 不缩小，坐标和浮点数据仍为原始坐标 / 数值。不能根据缩小后的 JPEG 尺寸解释 metadata 坐标。
 
@@ -76,6 +78,6 @@ Detail 的原生输出均为 3×4×4。回填前按固定 64 输入像素支持�
 
 本批 CAM：P3 4/6 有值、P4 5/6 有值、P5 3/6 有值；共 6/18 全零，所有测得值有限。00587 的 P3 raw 最大值仅约 1.67e-9，虽按原归一化公式产生可见热点，也不代表稳定、强烈的正响应。这六张是定向选择的可视化例子，**不能外推为完整 Test 的零值率**。
 
-六张的融合前后 TP/FP/FN 均未改变。00601 的 P3 对非破损位置的误检未被修正；00970 的第二块玻璃仍漏检，已如实保留。00586 可用于结构和纹理截图展示，但若论文需要“融合消除误检 / 补回漏检”的正例，必须另行筛选并核验，不能用这批结果代替。
+六张的融合前后 TP/FP/FN 均未改变。00601 的 P3 对非破损位置的误检未被修正；00970 的第二块玻璃仍漏检，已如实保留。00586 可用于结构和纹理截图展示；实际误检改善正例另见本页顶部的 Test 00751 和 Val 搜索，不能用这六张过程图代替。
 
 本地导出脚本：`experiments/export_input64_head_visuals.py`。仅执行只读推理，没有 optimizer step，没有覆盖权重，也没有修改训练代码来改变这批热力图。
