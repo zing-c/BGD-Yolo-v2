@@ -1,0 +1,662 @@
+{
+  "image": "00586",
+  "head": "p4",
+  "input_hw": [
+    384,
+    672
+  ],
+  "native_hw": [
+    2250,
+    4000
+  ],
+  "source_to_input_matrix": [
+    [
+      0.16,
+      0.0,
+      16.0
+    ],
+    [
+      0.0,
+      0.16,
+      12.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "candidate_conf": 0.2,
+  "final_conf": 0.5,
+  "nms_iou": 0.5,
+  "before_is_same_checkpoint_global_pass_not_independent_baseline": true,
+  "cam_computed": true,
+  "cam": {
+    "max": 0.9999998807907104,
+    "min": 0.0,
+    "nonzero_fraction": 0.027777777777777776,
+    "gradient_abs_max": 0.12879842519760132,
+    "raw_cam_max": 0.0029736398719251156,
+    "raw_cam_min": -0.030137907713651657,
+    "all_finite": true
+  },
+  "candidate_count": 10,
+  "detail_crop_count": 10,
+  "before_counts_iou05": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0
+  },
+  "after_counts_iou05": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0
+  },
+  "gt_boxes": [
+    [
+      1165.0,
+      265.0,
+      2437.0,
+      1400.0
+    ]
+  ],
+  "candidate_boxes": [
+    [
+      1151.69287109375,
+      273.0111083984375,
+      2424.55517578125,
+      1411.024169921875,
+      0.8346161842346191,
+      0.0
+    ],
+    [
+      1152.361328125,
+      274.9724426269531,
+      2421.678955078125,
+      1411.961669921875,
+      0.888401985168457,
+      0.0
+    ],
+    [
+      1155.08544921875,
+      251.60311889648438,
+      2434.913330078125,
+      1409.5343017578125,
+      0.5618217587471008,
+      0.0
+    ],
+    [
+      1156.433349609375,
+      267.3831787109375,
+      2428.843994140625,
+      1409.387939453125,
+      0.8956652283668518,
+      0.0
+    ],
+    [
+      1148.8203125,
+      266.36151123046875,
+      2429.40380859375,
+      1410.608154296875,
+      0.8957158327102661,
+      0.0
+    ],
+    [
+      1148.344970703125,
+      267.61627197265625,
+      2429.5849609375,
+      1409.9022216796875,
+      0.8252298831939697,
+      0.0
+    ],
+    [
+      1156.2332763671875,
+      267.6083984375,
+      2429.6806640625,
+      1404.310791015625,
+      0.902635395526886,
+      0.0
+    ],
+    [
+      1152.3082275390625,
+      264.84271240234375,
+      2431.565185546875,
+      1407.3277587890625,
+      0.9163482189178467,
+      0.0
+    ],
+    [
+      1152.3648681640625,
+      266.58441162109375,
+      2426.510009765625,
+      1408.10693359375,
+      0.8535824418067932,
+      0.0
+    ],
+    [
+      1150.78271484375,
+      261.2165832519531,
+      2434.1767578125,
+      1409.966796875,
+      0.8025700449943542,
+      0.0
+    ]
+  ],
+  "before_boxes": [
+    [
+      1152.3082275390625,
+      264.84271240234375,
+      2431.565185546875,
+      1407.3277587890625,
+      0.9163482189178467,
+      0.0
+    ]
+  ],
+  "after_boxes": [
+    [
+      1151.69287109375,
+      273.0111083984375,
+      2424.55517578125,
+      1411.024169921875,
+      0.9579415321350098,
+      0.0
+    ]
+  ],
+  "crops": [
+    {
+      "batch": 0,
+      "candidate": 0,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1718.0,
+        818.0,
+        1782.0,
+        882.0
+      ],
+      "input_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "visible_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "center_xy": [
+        296.0,
+        148.0
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C001.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 1,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1718.0,
+        818.0,
+        1782.0,
+        882.0
+      ],
+      "input_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "visible_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "center_xy": [
+        296.0,
+        148.0
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C002.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 2,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1718.0,
+        818.0,
+        1782.0,
+        882.0
+      ],
+      "input_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "visible_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "center_xy": [
+        296.0,
+        148.0
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C003.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 3,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1718.0,
+        818.0,
+        1782.0,
+        882.0
+      ],
+      "input_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "visible_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "center_xy": [
+        296.0,
+        148.0
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C004.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 4,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1718.0,
+        818.0,
+        1782.0,
+        882.0
+      ],
+      "input_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "visible_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "center_xy": [
+        296.0,
+        148.0
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C005.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 5,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1718.0,
+        818.0,
+        1782.0,
+        882.0
+      ],
+      "input_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "visible_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "center_xy": [
+        296.0,
+        148.0
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C006.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 6,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1718.0,
+        818.0,
+        1782.0,
+        882.0
+      ],
+      "input_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "visible_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "center_xy": [
+        296.0,
+        148.0
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C007.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 7,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1718.0,
+        818.0,
+        1782.0,
+        882.0
+      ],
+      "input_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "visible_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "center_xy": [
+        296.0,
+        148.0
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C008.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 8,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1718.0,
+        818.0,
+        1782.0,
+        882.0
+      ],
+      "input_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "visible_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "center_xy": [
+        296.0,
+        148.0
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C009.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 9,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1718.0,
+        818.0,
+        1782.0,
+        882.0
+      ],
+      "input_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "visible_rect": [
+        290.88,
+        142.88,
+        301.12,
+        153.12
+      ],
+      "center_xy": [
+        296.0,
+        148.0
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C010.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    }
+  ],
+  "cam_peak_native_xy": [
+    1747,
+    871
+  ],
+  "cam_peak_inside_gt": true,
+  "cam_energy_fraction_inside_gt_box": 0.5746130347251892,
+  "unique_crop_count": 1,
+  "weight": "experiments/runs/best318_mid_p4_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+  "weight_sha256": "ca1379869b5d1d5f99ab1d86bc895207a5227858d6e0be888e03e7ad0b412cff",
+  "best_val_epoch_1_based": 9,
+  "texture_comparison": {
+    "file": "detail_vs_global_same_region.jpg",
+    "crop_index": 1,
+    "source_rect": [
+      1718.0,
+      818.0,
+      1782.0,
+      882.0
+    ],
+    "projected_region_wh_on_input": [
+      10.24,
+      10.24
+    ],
+    "compressed_display_is_resampled_actual_canvas_not_detail_input": true
+  }
+}
