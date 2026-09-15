@@ -2,6 +2,8 @@
 
 更新日期：2026-09-14
 
+2026-09-15 补充：[最新单头与三头 Test + 三轮统一推理时间复测](CORRECTED_DIRECT_HEADS_TEST_TIMING_20260915.md)。当前速度比较以新页为准；P4 复测 AP 有微小差异，新页保留说明，本页原始数字不覆盖。
+
 本文档记录修正 Detail scatter 后，P3、P4、P5 三个 Detect 内部单头 Direct 模型的统一实验结果。
 这三组实验均不使用固定或可学习 alpha，重叠 Detail 特征采用 `sum` 累加，并使用 validation
 指标选择 `best.pt`，test 集只用于最后一次报告。
@@ -113,7 +115,7 @@ D_l[b,:,y_0:y_0+k_{h,l},x_0:x_0+k_{w,l}]\mathrel{+}=d_i^{(l)}.
 | P4 correct sum | 47 | 0.98472 | 0.93128 | 0.97263 | 0.94569 | **0.91931** |
 | P5 correct sum | 50 | 0.97662 | 0.93365 | 0.97249 | 0.94099 | **0.91876** |
 
-## 5. 统一 Test 结果
+## 5. 首次 Test 记录（旧时间不作同场速度排名）
 
 所有 P3/P4/P5 test 数字均来自各自 validation-selected `best.pt`；没有用 test 集挑选 epoch 或
 超参数。
