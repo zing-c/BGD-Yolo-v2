@@ -1,0 +1,78 @@
+{
+  "source": "experiments/analysis/input64_fp_suppression_20260916_r1/showcase_raw",
+  "images": [
+    "00751"
+  ],
+  "heads": [
+    "p3",
+    "p4",
+    "p5"
+  ],
+  "model_inference_executed": false,
+  "cam_values_modified": false,
+  "coordinates_or_confidences_modified": false,
+  "white_fill": "caption badges only",
+  "prediction_label": "broken glass: {confidence:.3f}",
+  "prediction_label_fill": "red",
+  "prediction_label_text_color": "white",
+  "prediction_label_anchor": "touching box top edge; inside if top clipped or labels overlap",
+  "annotation_top_padding": 42,
+  "label_font": "DejaVu Sans Bold",
+  "annotation_after_resize": true,
+  "cases": [
+    {
+      "image": "00751",
+      "head": "p3",
+      "source_metadata_sha256": "83f05ea5be294cc5887d8267549aa6d5c8e0af7bee781a1087c32453b04dcd58",
+      "output_metadata_sha256": "83f05ea5be294cc5887d8267549aa6d5c8e0af7bee781a1087c32453b04dcd58",
+      "actual_crops_copied_byte_identically": 11,
+      "cam_is_zero": true,
+      "before_counts": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "after_counts": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    {
+      "image": "00751",
+      "head": "p4",
+      "source_metadata_sha256": "481754f6b19f2e552c0b210af1ec33a4bdc2d90fd2ab9dd3134fd8c8171c2b62",
+      "output_metadata_sha256": "481754f6b19f2e552c0b210af1ec33a4bdc2d90fd2ab9dd3134fd8c8171c2b62",
+      "actual_crops_copied_byte_identically": 11,
+      "cam_is_zero": false,
+      "before_counts": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "after_counts": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    {
+      "image": "00751",
+      "head": "p5",
+      "source_metadata_sha256": "7840a9e4f7b0c7ce59db1aa3090dc0aed96d9ec5dfb79d593d471cb58832ed1f",
+      "output_metadata_sha256": "7840a9e4f7b0c7ce59db1aa3090dc0aed96d9ec5dfb79d593d471cb58832ed1f",
+      "actual_crops_copied_byte_identically": 12,
+      "cam_is_zero": false,
+      "before_counts": {
+        "tp": 1,
+        "fp": 1,
+        "fn": 0
+      },
+      "after_counts": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      }
+    }
+  ]
+}

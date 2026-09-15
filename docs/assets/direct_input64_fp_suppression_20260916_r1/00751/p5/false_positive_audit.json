@@ -1,0 +1,131 @@
+{
+  "image": "00751",
+  "head": "p5",
+  "scene": "vehicle interior, not exterior architecture",
+  "wrong_object_visual_observation": "camouflage clothing",
+  "independent_reexport_matches_search": true,
+  "baseline": "same checkpoint global first pass, not independent YOLO",
+  "verified_suppression": {
+    "raw_anchor_index": 8159,
+    "before_confidence": 0.6467725038528442,
+    "after_same_anchor_confidence": 0.23358751833438873,
+    "after_region_max_confidence_iou05": 0.23358751833438873,
+    "after_final_max_iou_with_old_box": 0.0035402928479015827,
+    "before_max_iou_with_gt": 0.01671154610812664,
+    "clearly_wrong_location_max_gt_iou_lt01": true,
+    "strict_confidence_suppression_below_05_not_just_nms": true,
+    "before_box_native": [
+      1334.1533203125,
+      6.871467590332031,
+      2209.505126953125,
+      2274.322021484375
+    ]
+  },
+  "before_counts": {
+    "tp": 1,
+    "fp": 1,
+    "fn": 0
+  },
+  "after_counts": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0
+  },
+  "preserves_all_before_matched_gt": true,
+  "actual_false_positive_region_crops": [
+    {
+      "batch": 0,
+      "candidate": 10,
+      "path": "/home/user/projects/czy/mydata/images/test/00751.jpg",
+      "source_rect": [
+        1858.0,
+        1306.0,
+        1922.0,
+        1370.0
+      ],
+      "input_rect": [
+        360.0740740740741,
+        263.9789750328515,
+        371.9259259259259,
+        275.8370565045992
+      ],
+      "visible_rect": [
+        360.0740740740741,
+        263.9789750328515,
+        371.9259259259259,
+        275.8370565045992
+      ],
+      "center_xy": [
+        366.0,
+        270.0
+      ],
+      "matrix": [
+        [
+          0.18518518518518517,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.18528252299605782,
+          22.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C011.png",
+      "center_inside_gt": false,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 11,
+      "path": "/home/user/projects/czy/mydata/images/test/00751.jpg",
+      "source_rect": [
+        1858.0,
+        1306.0,
+        1922.0,
+        1370.0
+      ],
+      "input_rect": [
+        360.0740740740741,
+        263.9789750328515,
+        371.9259259259259,
+        275.8370565045992
+      ],
+      "visible_rect": [
+        360.0740740740741,
+        263.9789750328515,
+        371.9259259259259,
+        275.8370565045992
+      ],
+      "center_xy": [
+        366.0,
+        270.0
+      ],
+      "matrix": [
+        [
+          0.18518518518518517,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.18528252299605782,
+          22.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C012.png",
+      "center_inside_gt": false,
+      "normalized_tensor_max_error": 0.0
+    }
+  ]
+}

@@ -4,7 +4,7 @@
 
 [完整说明、文件用途与数值结论](../../DIRECT_INPUT64_HEADS_VISUALS_20260916.md) · [单头 Test 指标与权重位置](../../DIRECT_INPUT64_HEADS_TEST_RESULTS_20260916.md)
 
-新增：[00601 / 01979 清晰排版版](../direct_input64_head_visuals_20260916_pretty/README.md)。粗红框，`broken glass: 0.979` 大字红底白字检测标签紧贴框边缘，顶部流程标题保持白底；比较图 / 流程图提供无损 PNG。只重绘样式，不改变检测或 CAM 数据，本目录旧版保持不变。
+新增：[00039 / 00586 / 00601 / 01979 清晰排版版](../direct_input64_head_visuals_20260916_pretty/README.md)。粗红框，`broken glass: 0.979` 大字红底白字检测标签紧贴框边缘，顶部流程标题保持白底；比较图 / 流程图提供无损 PNG。只重绘样式，不改变检测或 CAM 数据，本目录旧版保持不变。
 
 ## 00586：外拍建筑玻璃，三个单头对比
 

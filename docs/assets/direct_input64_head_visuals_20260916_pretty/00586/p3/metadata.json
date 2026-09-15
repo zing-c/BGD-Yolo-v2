@@ -1,0 +1,717 @@
+{
+  "image": "00586",
+  "head": "p3",
+  "input_hw": [
+    384,
+    672
+  ],
+  "native_hw": [
+    2250,
+    4000
+  ],
+  "source_to_input_matrix": [
+    [
+      0.16,
+      0.0,
+      16.0
+    ],
+    [
+      0.0,
+      0.16,
+      12.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "candidate_conf": 0.2,
+  "final_conf": 0.5,
+  "nms_iou": 0.5,
+  "before_is_same_checkpoint_global_pass_not_independent_baseline": true,
+  "cam_computed": true,
+  "cam": {
+    "max": 0.9999998807907104,
+    "min": 0.0,
+    "nonzero_fraction": 0.00248015873015873,
+    "gradient_abs_max": 0.0010043374495580792,
+    "raw_cam_max": 3.6720421121572144e-06,
+    "raw_cam_min": -7.75705702835694e-05,
+    "all_finite": true
+  },
+  "candidate_count": 11,
+  "detail_crop_count": 11,
+  "before_counts_iou05": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0
+  },
+  "after_counts_iou05": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0
+  },
+  "gt_boxes": [
+    [
+      1165.0,
+      265.0,
+      2437.0,
+      1400.0
+    ]
+  ],
+  "candidate_boxes": [
+    [
+      1152.4307861328125,
+      269.687744140625,
+      2426.774658203125,
+      1408.19677734375,
+      0.8767029643058777,
+      0.0
+    ],
+    [
+      1162.04296875,
+      276.6998291015625,
+      2417.171875,
+      1407.3795166015625,
+      0.279183954000473,
+      0.0
+    ],
+    [
+      1153.31884765625,
+      273.9577331542969,
+      2424.662109375,
+      1408.201904296875,
+      0.9015456438064575,
+      0.0
+    ],
+    [
+      1156.620361328125,
+      249.79425048828125,
+      2434.546630859375,
+      1408.5089111328125,
+      0.40538957715034485,
+      0.0
+    ],
+    [
+      1157.9676513671875,
+      264.9757385253906,
+      2428.670166015625,
+      1407.42333984375,
+      0.915643572807312,
+      0.0
+    ],
+    [
+      1152.238037109375,
+      265.0093078613281,
+      2428.09765625,
+      1408.4278564453125,
+      0.9154363870620728,
+      0.0
+    ],
+    [
+      1150.7833251953125,
+      266.0072326660156,
+      2428.60546875,
+      1406.6209716796875,
+      0.8660556674003601,
+      0.0
+    ],
+    [
+      1158.0313720703125,
+      265.0960388183594,
+      2429.27783203125,
+      1402.50341796875,
+      0.9128878712654114,
+      0.0
+    ],
+    [
+      1155.752197265625,
+      262.8580017089844,
+      2430.13232421875,
+      1404.1097412109375,
+      0.9227678775787354,
+      0.0
+    ],
+    [
+      1154.2686767578125,
+      265.5419921875,
+      2425.324951171875,
+      1404.405029296875,
+      0.8832540512084961,
+      0.0
+    ],
+    [
+      1152.2955322265625,
+      258.8128967285156,
+      2433.45849609375,
+      1407.308349609375,
+      0.6509469747543335,
+      0.0
+    ]
+  ],
+  "before_boxes": [
+    [
+      1155.752197265625,
+      262.8580017089844,
+      2430.13232421875,
+      1404.1097412109375,
+      0.9227678775787354,
+      0.0
+    ]
+  ],
+  "after_boxes": [
+    [
+      1155.752197265625,
+      262.8580017089844,
+      2430.13232421875,
+      1404.1097412109375,
+      0.9227678775787354,
+      0.0
+    ]
+  ],
+  "crops": [
+    {
+      "batch": 0,
+      "candidate": 0,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1758.0,
+        807.0,
+        1822.0,
+        871.0
+      ],
+      "input_rect": [
+        297.28000000000003,
+        141.12,
+        307.52,
+        151.36
+      ],
+      "visible_rect": [
+        297.28000000000003,
+        141.12,
+        307.52,
+        151.36
+      ],
+      "center_xy": [
+        302.33643341064453,
+        146.2307586669922
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C001.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 1,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1758.0,
+        810.0,
+        1822.0,
+        874.0
+      ],
+      "input_rect": [
+        297.28000000000003,
+        141.6,
+        307.52,
+        151.84
+      ],
+      "visible_rect": [
+        297.28000000000003,
+        141.6,
+        307.52,
+        151.84
+      ],
+      "center_xy": [
+        302.3371887207031,
+        146.72634887695312
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C002.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 2,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1757.0,
+        809.0,
+        1821.0,
+        873.0
+      ],
+      "input_rect": [
+        297.12,
+        141.44,
+        307.36,
+        151.68
+      ],
+      "visible_rect": [
+        297.12,
+        141.44,
+        307.36,
+        151.68
+      ],
+      "center_xy": [
+        302.2384719848633,
+        146.57276916503906
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C003.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 3,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1764.0,
+        797.0,
+        1828.0,
+        861.0
+      ],
+      "input_rect": [
+        298.24,
+        139.51999999999998,
+        308.48,
+        149.76
+      ],
+      "visible_rect": [
+        298.24,
+        139.51999999999998,
+        308.48,
+        149.76
+      ],
+      "center_xy": [
+        303.2933654785156,
+        144.66424942016602
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C004.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 4,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1761.0,
+        804.0,
+        1825.0,
+        868.0
+      ],
+      "input_rect": [
+        297.76,
+        140.64000000000001,
+        308.0,
+        150.88
+      ],
+      "visible_rect": [
+        297.76,
+        140.64000000000001,
+        308.0,
+        150.88
+      ],
+      "center_xy": [
+        302.93102264404297,
+        145.79193115234375
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C005.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 5,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1758.0,
+        805.0,
+        1822.0,
+        869.0
+      ],
+      "input_rect": [
+        297.28000000000003,
+        140.8,
+        307.52,
+        151.04
+      ],
+      "visible_rect": [
+        297.28000000000003,
+        140.8,
+        307.52,
+        151.04
+      ],
+      "center_xy": [
+        302.4268493652344,
+        145.87496948242188
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C006.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 6,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1758.0,
+        804.0,
+        1822.0,
+        868.0
+      ],
+      "input_rect": [
+        297.28000000000003,
+        140.64000000000001,
+        307.52,
+        150.88
+      ],
+      "visible_rect": [
+        297.28000000000003,
+        140.64000000000001,
+        307.52,
+        150.88
+      ],
+      "center_xy": [
+        302.3511047363281,
+        145.8102569580078
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C007.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 7,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1762.0,
+        802.0,
+        1826.0,
+        866.0
+      ],
+      "input_rect": [
+        297.92,
+        140.32,
+        308.16,
+        150.56
+      ],
+      "visible_rect": [
+        297.92,
+        140.32,
+        308.16,
+        150.56
+      ],
+      "center_xy": [
+        302.98473358154297,
+        145.40795516967773
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C008.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 8,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1761.0,
+        801.0,
+        1825.0,
+        865.0
+      ],
+      "input_rect": [
+        297.76,
+        140.16,
+        308.0,
+        150.4
+      ],
+      "visible_rect": [
+        297.76,
+        140.16,
+        308.0,
+        150.4
+      ],
+      "center_xy": [
+        302.8707580566406,
+        145.357421875
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C009.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 9,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1758.0,
+        803.0,
+        1822.0,
+        867.0
+      ],
+      "input_rect": [
+        297.28000000000003,
+        140.48,
+        307.52,
+        150.72
+      ],
+      "visible_rect": [
+        297.28000000000003,
+        140.48,
+        307.52,
+        150.72
+      ],
+      "center_xy": [
+        302.36749267578125,
+        145.59576034545898
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C010.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 10,
+      "path": "/home/user/projects/czy/mydata/images/test/00586.jpg",
+      "source_rect": [
+        1761.0,
+        801.0,
+        1825.0,
+        865.0
+      ],
+      "input_rect": [
+        297.76,
+        140.16,
+        308.0,
+        150.4
+      ],
+      "visible_rect": [
+        297.76,
+        140.16,
+        308.0,
+        150.4
+      ],
+      "center_xy": [
+        302.8603210449219,
+        145.28970336914062
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C011.png",
+      "center_inside_gt": true,
+      "normalized_tensor_max_error": 0.0
+    }
+  ],
+  "cam_peak_native_xy": [
+    3172,
+    1047
+  ],
+  "cam_peak_inside_gt": false,
+  "cam_energy_fraction_inside_gt_box": 0.0,
+  "unique_crop_count": 10,
+  "weight": "experiments/runs/best318_high_p3_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+  "weight_sha256": "03bbecbb8257ad933c8e381c8941e2b1f23dadcbad8f15ea5dcf172789357f7d",
+  "best_val_epoch_1_based": 45,
+  "texture_comparison": {
+    "file": "detail_vs_global_same_region.jpg",
+    "crop_index": 1,
+    "source_rect": [
+      1758.0,
+      807.0,
+      1822.0,
+      871.0
+    ],
+    "projected_region_wh_on_input": [
+      10.24,
+      10.24
+    ],
+    "compressed_display_is_resampled_actual_canvas_not_detail_input": true
+  }
+}
