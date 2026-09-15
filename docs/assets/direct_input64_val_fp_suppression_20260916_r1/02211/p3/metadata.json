@@ -1,0 +1,198 @@
+{
+  "image": "02211",
+  "dataset": "Val",
+  "head": "p3",
+  "input_hw": [
+    384,
+    672
+  ],
+  "native_hw": [
+    2250,
+    4000
+  ],
+  "source_to_input_matrix": [
+    [
+      0.16,
+      0.0,
+      16.0
+    ],
+    [
+      0.0,
+      0.16,
+      12.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "candidate_conf": 0.2,
+  "final_conf": 0.5,
+  "nms_iou": 0.5,
+  "before_is_same_checkpoint_global_pass_not_independent_baseline": true,
+  "cam_computed": true,
+  "cam": {
+    "max": 0.9999998807907104,
+    "min": 0.0,
+    "nonzero_fraction": 0.005952380952380952,
+    "gradient_abs_max": 0.012055491097271442,
+    "raw_cam_max": 3.199013735866174e-05,
+    "raw_cam_min": -0.00015018785779830068,
+    "all_finite": true
+  },
+  "candidate_count": 2,
+  "detail_crop_count": 2,
+  "before_counts_iou05": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0
+  },
+  "after_counts_iou05": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0
+  },
+  "gt_boxes": [],
+  "candidate_boxes": [
+    [
+      1170.4281005859375,
+      4.363822937011719,
+      2519.635009765625,
+      2211.792236328125,
+      0.24077267944812775,
+      0.0
+    ],
+    [
+      1162.328857421875,
+      0.0,
+      2523.851318359375,
+      2198.83740234375,
+      0.2644622325897217,
+      0.0
+    ]
+  ],
+  "before_boxes": [],
+  "after_boxes": [],
+  "crops": [
+    {
+      "batch": 0,
+      "candidate": 0,
+      "path": "/home/user/projects/czy/mydata/images/val/02211.jpg",
+      "source_rect": [
+        1468.0,
+        218.0,
+        1532.0,
+        282.0
+      ],
+      "input_rect": [
+        250.88,
+        46.88,
+        261.12,
+        57.12
+      ],
+      "visible_rect": [
+        250.88,
+        46.88,
+        261.12,
+        57.12
+      ],
+      "center_xy": [
+        256.0,
+        52.0
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C001.png",
+      "center_inside_gt": false,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 1,
+      "path": "/home/user/projects/czy/mydata/images/val/02211.jpg",
+      "source_rect": [
+        1468.0,
+        218.0,
+        1532.0,
+        282.0
+      ],
+      "input_rect": [
+        250.88,
+        46.88,
+        261.12,
+        57.12
+      ],
+      "visible_rect": [
+        250.88,
+        46.88,
+        261.12,
+        57.12
+      ],
+      "center_xy": [
+        256.0,
+        52.0
+      ],
+      "matrix": [
+        [
+          0.16,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.16,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C002.png",
+      "center_inside_gt": false,
+      "normalized_tensor_max_error": 0.0
+    }
+  ],
+  "cam_peak_native_xy": [
+    977,
+    202
+  ],
+  "cam_peak_inside_gt": false,
+  "cam_energy_fraction_inside_gt_box": 0.0,
+  "unique_crop_count": 1,
+  "weight": "experiments/runs/best318_high_p3_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+  "weight_sha256": "03bbecbb8257ad933c8e381c8941e2b1f23dadcbad8f15ea5dcf172789357f7d",
+  "best_val_epoch_1_based": 45,
+  "texture_comparison": {
+    "file": "detail_vs_global_same_region.jpg",
+    "crop_index": 1,
+    "source_rect": [
+      1468.0,
+      218.0,
+      1532.0,
+      282.0
+    ],
+    "projected_region_wh_on_input": [
+      10.24,
+      10.24
+    ],
+    "compressed_display_is_resampled_actual_canvas_not_detail_input": true
+  }
+}

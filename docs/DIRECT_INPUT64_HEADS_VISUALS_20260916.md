@@ -8,6 +8,8 @@
 
 另行完整扫描当前三个单头的 Test 后，找到 [00751 / P5 真实误检置信度跌破 0.5 的例子](DIRECT_INPUT64_FP_SUPPRESSION_SEARCH_20260916.md)：迷彩衣服错误框 0.647→0.234，正确玻璃保留；[图片与实际 Detail 截图](assets/direct_input64_fp_suppression_20260916_r1/README.md)。该图是车内场景，不是外拍建筑；不改变下面原有六张样例的结论。
 
+进一步扫描完整 503 张 Val，新增 [00770 / 00657 / 02211 的 P5 误检抑制例子](DIRECT_INPUT64_VAL_FP_SUPPRESSION_20260916.md)：墙边 / 窗框 0.579→0.328、带孔面板 0.672→0.269，均保留正确玻璃；外拍反光窗户背景 0.590→0.304。图片和全部实际截图见 [Val 素材首页](assets/direct_input64_val_fp_suppression_20260916_r1/README.md)。00601/P3 的 0.558 误检前后未变，不能当改善正例；Val 和 Test 分开报告。
+
 ## 用户选定的 00039 / 00586 / 00601 / 01979：清晰排版版
 
 新增[四张图片的清晰版预览首页](assets/direct_input64_head_visuals_20260916_pretty/README.md)。红框更粗，检测标签使用常见的 `broken glass: 0.979` 红底白字样式，紧贴红框上边缘；顶部流程标题保持白底深色字。检测 / 截图区域内部不填色，保留真实纹理和 CAM。先缩放图片再绘制固定字号标记，同时提供无损 PNG。

@@ -1,0 +1,415 @@
+{
+  "dataset": "Val",
+  "image": "00657",
+  "head": "p5",
+  "scene": "Glass roof / skylight",
+  "wrong_region_visual_observation": "Perforated structural panel beside glass",
+  "background_without_gt": false,
+  "independent_reexport_matches_search": true,
+  "baseline": "same checkpoint global first pass, NOT independent YOLO",
+  "verified_suppression": {
+    "raw_anchor_index": 7324,
+    "before_confidence": 0.6722530722618103,
+    "after_same_anchor_confidence": 0.2691894769668579,
+    "after_region_max_confidence_iou05": 0.3638501763343811,
+    "after_final_max_iou_with_old_box": 0.0,
+    "before_max_iou_with_gt": 0.0,
+    "clearly_wrong_location_max_gt_iou_lt01": true,
+    "strict_confidence_suppression_below_05_not_just_nms": true,
+    "before_box_native": [
+      1938.0877685546875,
+      0.0,
+      3024.0,
+      3873.801513671875
+    ]
+  },
+  "before_counts": {
+    "tp": 1,
+    "fp": 1,
+    "fn": 0
+  },
+  "after_counts": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0
+  },
+  "retains_true_detection": true,
+  "actual_false_positive_candidate_detail_crops": [
+    {
+      "batch": 0,
+      "candidate": 10,
+      "path": "/home/user/projects/czy/mydata/images/val/00657.jpg",
+      "source_rect": [
+        2619.0,
+        1882.0,
+        2683.0,
+        1946.0
+      ],
+      "input_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "visible_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "center_xy": [
+        459.5,
+        331.5
+      ],
+      "matrix": [
+        [
+          0.1650132275132275,
+          0.0,
+          22.0
+        ],
+        [
+          0.0,
+          0.16482101467937163,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C011.png",
+      "center_inside_gt": false,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 11,
+      "path": "/home/user/projects/czy/mydata/images/val/00657.jpg",
+      "source_rect": [
+        2619.0,
+        1882.0,
+        2683.0,
+        1946.0
+      ],
+      "input_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "visible_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "center_xy": [
+        459.5,
+        331.5
+      ],
+      "matrix": [
+        [
+          0.1650132275132275,
+          0.0,
+          22.0
+        ],
+        [
+          0.0,
+          0.16482101467937163,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C012.png",
+      "center_inside_gt": false,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 12,
+      "path": "/home/user/projects/czy/mydata/images/val/00657.jpg",
+      "source_rect": [
+        2619.0,
+        1882.0,
+        2683.0,
+        1946.0
+      ],
+      "input_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "visible_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "center_xy": [
+        459.5,
+        331.5
+      ],
+      "matrix": [
+        [
+          0.1650132275132275,
+          0.0,
+          22.0
+        ],
+        [
+          0.0,
+          0.16482101467937163,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C013.png",
+      "center_inside_gt": false,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 13,
+      "path": "/home/user/projects/czy/mydata/images/val/00657.jpg",
+      "source_rect": [
+        2619.0,
+        1882.0,
+        2683.0,
+        1946.0
+      ],
+      "input_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "visible_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "center_xy": [
+        459.5,
+        331.5
+      ],
+      "matrix": [
+        [
+          0.1650132275132275,
+          0.0,
+          22.0
+        ],
+        [
+          0.0,
+          0.16482101467937163,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C014.png",
+      "center_inside_gt": false,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 14,
+      "path": "/home/user/projects/czy/mydata/images/val/00657.jpg",
+      "source_rect": [
+        2619.0,
+        1882.0,
+        2683.0,
+        1946.0
+      ],
+      "input_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "visible_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "center_xy": [
+        459.5,
+        331.5
+      ],
+      "matrix": [
+        [
+          0.1650132275132275,
+          0.0,
+          22.0
+        ],
+        [
+          0.0,
+          0.16482101467937163,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C015.png",
+      "center_inside_gt": false,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 15,
+      "path": "/home/user/projects/czy/mydata/images/val/00657.jpg",
+      "source_rect": [
+        2619.0,
+        1882.0,
+        2683.0,
+        1946.0
+      ],
+      "input_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "visible_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "center_xy": [
+        459.5,
+        331.5
+      ],
+      "matrix": [
+        [
+          0.1650132275132275,
+          0.0,
+          22.0
+        ],
+        [
+          0.0,
+          0.16482101467937163,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C016.png",
+      "center_inside_gt": false,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 16,
+      "path": "/home/user/projects/czy/mydata/images/val/00657.jpg",
+      "source_rect": [
+        2619.0,
+        1882.0,
+        2683.0,
+        1946.0
+      ],
+      "input_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "visible_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "center_xy": [
+        459.5,
+        331.5
+      ],
+      "matrix": [
+        [
+          0.1650132275132275,
+          0.0,
+          22.0
+        ],
+        [
+          0.0,
+          0.16482101467937163,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C017.png",
+      "center_inside_gt": false,
+      "normalized_tensor_max_error": 0.0
+    },
+    {
+      "batch": 0,
+      "candidate": 17,
+      "path": "/home/user/projects/czy/mydata/images/val/00657.jpg",
+      "source_rect": [
+        2619.0,
+        1882.0,
+        2683.0,
+        1946.0
+      ],
+      "input_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "visible_rect": [
+        454.16964285714283,
+        326.1931496265774,
+        464.73048941798936,
+        336.7416945660572
+      ],
+      "center_xy": [
+        459.5,
+        331.5
+      ],
+      "matrix": [
+        [
+          0.1650132275132275,
+          0.0,
+          22.0
+        ],
+        [
+          0.0,
+          0.16482101467937163,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "file": "detail_crops_64/C018.png",
+      "center_inside_gt": false,
+      "normalized_tensor_max_error": 0.0
+    }
+  ]
+}

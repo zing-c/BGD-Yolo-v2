@@ -4,6 +4,8 @@
 
 这是固定模型的定性可视化筛选，不用于挑权重或超参数。使用单头训练时保存、SHA256 完全匹配的本地运行源码；没有修改正在运行的多头训练、CAM target、融合逻辑、阈值或权重。
 
+新增 **Val** 搜索已完成：另见 [00770 / 00657 / 02211 的三个 P5 例子](DIRECT_INPUT64_VAL_FP_SUPPRESSION_20260916.md)及[图片首页](assets/direct_input64_val_fp_suppression_20260916_r1/README.md)。两个保留正确检测的非破损位置正例，一个外拍窗户背景负例；不混入本页 Test 统计。00601/P3 仍保留 0.558 的误检，不是与 00751 相同的改善例子。
+
 ## 00751 / P5：迷彩衣服被误当成破损玻璃
 
 ![真实误检抑制前后对比](assets/direct_input64_fp_suppression_20260916_r1/00751/p5/false_positive_suppression.jpg)
