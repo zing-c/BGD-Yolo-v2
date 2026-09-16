@@ -4,6 +4,8 @@
 
 本页只记录本轮 `geometry_v5_input64_sum_e50_lr1e4_r1` 的三个**独立单头实验**，不是一套 P3+P4+P5 多头模型，也不是此前仅修复 xy / add 的旧结果。没有 alpha；重叠 Detail 回填为 sum。
 
+P3+P4+P5 三头 r2 也已完成并与本页一起更新，统一比较、可下载四个 best.pt 见[当前单头与三头总表](DIRECT_INPUT64_CURRENT_SINGLE_MULTI_RESULTS_20260916.md)；三头真实改善图片见[00601 / 00890 可视化](DIRECT_INPUT64_MULTI_IMPROVEMENT_VISUALS_20260916.md)。
+
 ## 1. 最终 Test 指标
 
 使用各自 **Val mAP50 选择的 best.pt**；没有使用 Test 选择 epoch。以下数值为 0–1，保留九位小数；精确浮点数见 [结果 JSON](results/direct_input64_heads_test_20260916.json)。
@@ -48,10 +50,14 @@ loss 计时段是 standalone 验证器空分支 / 计时开销，不代表 Test 
 | workers / OMP、MKL threads | 4 / 4；OpenBLAS=1 |
 | candidate confidence | 原 YOLO pre-NMS score >0.2，train / val / test 一致 |
 | 最终 confidence / NMS IoU | 0.5 / 0.5 |
-| Test 次数 | 每模型一次完整 Test；没有做三次统一预热复测 |
+| Test 次数 | 表 1 为训练结束后的每模型一次完整 Test；之后另做每模型三次统一预热复测，见下文 |
 | 时间边界 | 验证器 inference，含模型内部 YOLO、CAM、原图 crop、Detail、scatter、融合及再次解码；不含 loader、外部预处理与最终 NMS |
 
-表中时间是**整个 Test 集的单次平均 inference**，不是含有效 Detail crop 的每张图片延迟，不是完整请求端到端耗时。无候选样本跳过 CAM / Detail 的既有分支仍保留。不能将本页约 8.6–8.8 ms 与 [旧版三轮约 54 ms](CORRECTED_DIRECT_HEADS_TEST_TIMING_20260915.md) 直接混用或据此声称固定加速倍数；运行代码版本、计时复测流程和 CPU 设置不同。
+表中时间是**整个 Test 集的单次平均 inference**，不是只统计含有效 Detail crop 的图片，也不是完整请求端到端耗时。无候选样本跳过 CAM / Detail 的既有分支仍保留。不能将本页约 8.6–8.8 ms 与 [旧版三轮约 54 ms](CORRECTED_DIRECT_HEADS_TEST_TIMING_20260915.md) 直接混用或据此声称固定加速倍数。
+
+差异已经定位到实现，而不只是计时名称：旧 ZIP `_predict_once` 在每张验证图片上执行 `copy.deepcopy(self.model.model)`，末尾执行 `torch.cuda.empty_cache()`，还会全模型清理 / 重挂 hook；当前 geometry-v5 复用同一模型，只对目标层注册并在 `finally` 移除临时 hook，也不逐图清空 CUDA allocator。CAM backward、原图 crop、Detail 与融合仍在当前 inference 计时范围内。
+
+当前版本每模型三轮完整 Test 受控复测已完成：P3 **8.098744±0.227742**、P4 **7.885968±0.005193**、P5 **7.942459±0.027016** ms/张；三头 r2 为 **7.972821±0.011996** ms/张。三轮均做 20 张真实图预热、CUDA 同步，且无其他 GPU 计算进程，证明约 8 ms 不是单次日志偶然值。完整数据见[统一结果页](DIRECT_INPUT64_CURRENT_SINGLE_MULTI_RESULTS_20260916.md)和[计时 JSON](results/direct_input64_v5_controlled_timing_20260916.json)。论文可称为实现优化后的实测延迟，但不能把旧 / 新数值解释为网络理论 FLOPs 固定加速。
 
 正式启动 2026-09-15 20:27:53 JST；所有训练及最终 best Val 恢复完成于 2026-09-16 00:33:16 JST；全部 Test 完成于 00:35:09 JST（北京时间 9 月 15 日 23:35:09）。
 
@@ -108,13 +114,13 @@ loss 计时段是 standalone 验证器空分支 / 计时开销，不代表 Test 
 
 ## 7. 权重具体位置与核验
 
-以下为训练机本地路径，相对项目根目录 `/home/user/projects/czy/BGD-Yolo_v2_copy`。本次发布结果文档 / 数据，**没有上传这些权重二进制或完整源码**。
+以下为训练机本地路径，相对项目根目录 `/home/user/projects/czy/BGD-Yolo_v2_copy`。本次更新已上传三个单头 best.pt；不上传重复的 last.pt。
 
-| 实验 | best.pt 路径 | Best epoch | 文件大小 bytes |
-|---|---|---:|---:|
-| P3 | `experiments/runs/best318_high_p3_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt` | 45 | 10,303,029 |
-| P4 | `experiments/runs/best318_mid_p4_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt` | 9 | 10,303,029 |
-| P5 | `experiments/runs/best318_low_p5_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt` | 38 | 10,303,029 |
+| 实验 | GitHub best.pt | 训练机原路径 | Best epoch | 文件大小 bytes |
+|---|---|---|---:|---:|
+| P3 | [p3_best.pt](weights/direct_input64_20260916/p3_best.pt) | `experiments/runs/best318_high_p3_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt` | 45 | 10,303,029 |
+| P4 | [p4_best.pt](weights/direct_input64_20260916/p4_best.pt) | `experiments/runs/best318_mid_p4_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt` | 9 | 10,303,029 |
+| P5 | [p5_best.pt](weights/direct_input64_20260916/p5_best.pt) | `experiments/runs/best318_low_p5_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt` | 38 | 10,303,029 |
 
 每个同目录还有 `last.pt`。完成训练后 optimizer 已 strip；文件大小约 9.83 MiB，不能沿用训练中含 raw / optimizer 的约 61 MB，也不能用历史旧版约 685 MB 的文件大小解释本轮参数量。best 与 last 的 SHA256 及字节数均在结果 JSON。
 
@@ -130,7 +136,7 @@ best SHA256：
 
 - [精确结果 JSON](results/direct_input64_heads_test_20260916.json)：Test、Val、每阶段时间、模型参数、fused / unfused GFLOPs 分解、配置、权重 hash 与路径。
 - JSON 的 `training_code_sha256` 记录本轮实际运行代码版本；扩展多头前已核对全部匹配。
-- 完整运行源码快照与只读 GFLOPs 核验脚本保留在训练机本地，分别为 `docs/results/direct_input64_v5_runtime_20260916/` 与 `docs/results/profile_input64_heads_20260916.py`，未随本次指标发布上传。
+- 完整运行源码快照与只读 GFLOPs 核验脚本保留在训练机本地，分别为 `docs/results/direct_input64_v5_runtime_20260916/` 与 `docs/results/profile_input64_heads_20260916.py`；本次上传的是结果、图像与关键 best.pt，不发布完整训练运行归档。
 - 机器本地完整状态：`experiments/analysis/geometry_v5_input64_e50_r1/status.json`；完整训练和 Test 日志位于同目录。
 
-main 本次更新仅包含 docs 下的结果 MD、JSON 与三份训练 CSV，不覆盖 main 的训练代码。复现需要相同运行版本、本地环境、历史代码 ZIP、数据与权重。后续 P3+P4+P5 多头实验不属于本页已完成结果。
+main 本次更新包含 docs 下的结果 MD、JSON、训练 CSV、可视化和四个关键 best.pt，不覆盖 main 的训练代码。复现仍需要相同运行版本、本地环境、历史代码 ZIP 与数据。P3+P4+P5 多头 r2 已完成，见[统一结果页](DIRECT_INPUT64_CURRENT_SINGLE_MULTI_RESULTS_20260916.md)。

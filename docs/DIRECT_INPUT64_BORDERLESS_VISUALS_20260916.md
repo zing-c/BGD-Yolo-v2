@@ -6,6 +6,7 @@
 
 | 素材组 | 已更新目录 | 范围 |
 |---|---|---|
+| 三头 r2 新案例 | [00601 / 00890 图片首页](assets/direct_input64_multi_improvements_20260916_r2/README.md) | 00601 消除外墙误检并保留正确玻璃；00890 正确框 0.679→0.742；同样无外白边 / 标题 / 图例 |
 | 原六张 Test 示例 | [图片首页](assets/direct_input64_head_visuals_20260916_r1/README.md) | 00587 / 00586 / 00039 / 00601 / 01979 / 00970，三个当前独立单头 |
 | 用户选定四张 | [图片首页](assets/direct_input64_head_visuals_20260916_pretty/README.md) | 00039 / 00586 / 00601 / 01979，三个当前独立单头 |
 | Test 误检抑制 | [00751 首页](assets/direct_input64_fp_suppression_20260916_r1/README.md) | P5 迷彩衣服错误框 0.647→0.234，正确目标保留；其他头真实结果也保留 |

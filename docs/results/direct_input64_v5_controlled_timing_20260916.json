@@ -1,0 +1,1944 @@
+{
+  "phase": "complete",
+  "protocol": {
+    "started_at": "2026-09-16T14:50:39.833515",
+    "models": [
+      "p3",
+      "p4",
+      "p5",
+      "multi"
+    ],
+    "rounds": 3,
+    "warmup_images": 20,
+    "workers": 8,
+    "torch_cpu_threads": 8,
+    "device": "cuda:0",
+    "gpu": "NVIDIA RTX 6000 Ada Generation",
+    "precision": "FP32",
+    "batch": 1,
+    "imgsz": 640,
+    "rect": true,
+    "candidate_conf": 0.2,
+    "final_conf": 0.5,
+    "nms_iou": 0.5,
+    "data": "/home/user/projects/czy/BGD-Yolo_v2_copy/experiments/bg_local.yaml",
+    "initial_gpu": {
+      "at": "2026-09-16T14:50:39.910546",
+      "apps": [
+        {
+          "pid": 3341,
+          "name": "/usr/bin/anydesk",
+          "memory_mib": "14"
+        },
+        {
+          "pid": 3045,
+          "name": "/usr/libexec/gnome-remote-desktop-daemon",
+          "memory_mib": "430"
+        }
+      ],
+      "gpu": "0, NVIDIA RTX 6000 Ada Generation, 817, 4, 40, 210"
+    },
+    "scope": "validator inference timing; excludes loader, preprocess and final NMS",
+    "implementation": "geometry-v5; no per-image model deepcopy or torch.cuda.empty_cache",
+    "finished_at": "2026-09-16T14:56:56.326239"
+  },
+  "summary": {
+    "p3": {
+      "passes": 3,
+      "inference_ms_each_pass": [
+        8.355048779999658,
+        8.021551915193827,
+        7.919629912203335
+      ],
+      "inference_ms_mean": 8.09874353579894,
+      "inference_ms_sample_std": 0.22774175578270825,
+      "synchronized_forward_ms_mean_across_passes": 8.070063166038926,
+      "detail_crops_per_image_mean": 1.4311639549436797,
+      "metrics_identical_across_passes": true
+    },
+    "p4": {
+      "passes": 3,
+      "inference_ms_each_pass": [
+        7.880267571746481,
+        7.890429156593448,
+        7.887206477426618
+      ],
+      "inference_ms_mean": 7.885967735255516,
+      "inference_ms_sample_std": 0.0051928136183937495,
+      "synchronized_forward_ms_mean_across_passes": 7.8573870403171195,
+      "detail_crops_per_image_mean": 1.437421777221527,
+      "metrics_identical_across_passes": true
+    },
+    "p5": {
+      "passes": 3,
+      "inference_ms_each_pass": [
+        7.9278062670042875,
+        7.973635897916905,
+        7.925935322710211
+      ],
+      "inference_ms_mean": 7.942459162543801,
+      "inference_ms_sample_std": 0.027016045778967886,
+      "synchronized_forward_ms_mean_across_passes": 7.913622694947655,
+      "detail_crops_per_image_mean": 1.3961201501877347,
+      "metrics_identical_across_passes": true
+    },
+    "multi": {
+      "passes": 3,
+      "inference_ms_each_pass": [
+        7.9591468219017045,
+        7.981568910601143,
+        7.977748096213025
+      ],
+      "inference_ms_mean": 7.972821276238625,
+      "inference_ms_sample_std": 0.011995527570994532,
+      "synchronized_forward_ms_mean_across_passes": 7.943924501037598,
+      "detail_crops_per_image_mean": 1.2934918648310387,
+      "metrics_identical_across_passes": true
+    }
+  },
+  "trials": [
+    {
+      "round": 1,
+      "model": "p3",
+      "checkpoint": "experiments/runs/best318_high_p3_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+      "method": "best318_framework_corrected_single_head_direct_geometry_v5_input64",
+      "images": 1598,
+      "metrics": {
+        "precision": 0.9579833307434018,
+        "recall": 0.8931623931623932,
+        "map50": 0.9418166389729706,
+        "map75": 0.9106987741016319,
+        "map50_95": 0.8846312324835252
+      },
+      "speed_ms_per_image": {
+        "preprocess": 0.09518854310724405,
+        "inference": 8.355048779999658,
+        "loss": 0.00320895294074869,
+        "postprocess": 0.1313681894906322
+      },
+      "measured_forward_ms_mean": 8.326722483379557,
+      "measured_forward_ms_p50": 2.2227440058486536,
+      "measured_forward_ms_p95": 52.77664670575177,
+      "detail_crops_total": 2287,
+      "detail_crops_per_image": 1.4311639549436797,
+      "wall_seconds_including_warmup": 32.25310814002296,
+      "gpu_snapshots": [
+        {
+          "at": "2026-09-16T14:50:39.969115",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 817, 4, 40, 210"
+        },
+        {
+          "at": "2026-09-16T14:50:41.086200",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "768"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1591, 15, 41, 2505"
+        },
+        {
+          "at": "2026-09-16T14:50:45.897447",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 12, 42, 2505"
+        },
+        {
+          "at": "2026-09-16T14:50:50.641034",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 9, 43, 2505"
+        },
+        {
+          "at": "2026-09-16T14:50:55.368378",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 12, 43, 2505"
+        },
+        {
+          "at": "2026-09-16T14:51:12.357099",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "792"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1615, 29, 46, 2775"
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "model": "p4",
+      "checkpoint": "experiments/runs/best318_mid_p4_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+      "method": "best318_framework_corrected_single_head_direct_geometry_v5_input64",
+      "images": 1598,
+      "metrics": {
+        "precision": 0.9504504504504504,
+        "recall": 0.9017094017094017,
+        "map50": 0.935256142882769,
+        "map75": 0.9146006851032884,
+        "map50_95": 0.8819242489958212
+      },
+      "speed_ms_per_image": {
+        "preprocess": 0.09355542059983121,
+        "inference": 7.880267571746481,
+        "loss": 0.0032338690250477893,
+        "postprocess": 0.11874319465646756
+      },
+      "measured_forward_ms_mean": 7.851965213245485,
+      "measured_forward_ms_p50": 2.268362499307841,
+      "measured_forward_ms_p95": 46.237587662471896,
+      "detail_crops_total": 2297,
+      "detail_crops_per_image": 1.437421777221527,
+      "wall_seconds_including_warmup": 30.762287602003198,
+      "gpu_snapshots": [
+        {
+          "at": "2026-09-16T14:51:12.514421",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "566"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1389, 17, 46, 2775"
+        },
+        {
+          "at": "2026-09-16T14:51:13.054373",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 17, 46, 2775"
+        },
+        {
+          "at": "2026-09-16T14:51:17.808461",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 9, 46, 2505"
+        },
+        {
+          "at": "2026-09-16T14:51:22.492730",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 12, 46, 2505"
+        },
+        {
+          "at": "2026-09-16T14:51:27.268024",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 12, 47, 2505"
+        },
+        {
+          "at": "2026-09-16T14:51:43.384584",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "790"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1613, 31, 50, 2775"
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "model": "p5",
+      "checkpoint": "experiments/runs/best318_low_p5_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+      "method": "best318_framework_corrected_single_head_direct_geometry_v5_input64",
+      "images": 1598,
+      "metrics": {
+        "precision": 0.9513011416837688,
+        "recall": 0.8974358974358975,
+        "map50": 0.9430389183884542,
+        "map75": 0.919773815739148,
+        "map50_95": 0.8906249745165267
+      },
+      "speed_ms_per_image": {
+        "preprocess": 0.094927446415487,
+        "inference": 7.9278062670042875,
+        "loss": 0.003273257325975707,
+        "postprocess": 0.11771745765313638
+      },
+      "measured_forward_ms_mean": 7.898877449827595,
+      "measured_forward_ms_p50": 2.2775160032324493,
+      "measured_forward_ms_p95": 46.687898106756535,
+      "detail_crops_total": 2231,
+      "detail_crops_per_image": 1.3961201501877347,
+      "wall_seconds_including_warmup": 30.877362369006732,
+      "gpu_snapshots": [
+        {
+          "at": "2026-09-16T14:51:43.523325",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "566"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1389, 31, 49, 2775"
+        },
+        {
+          "at": "2026-09-16T14:51:44.086381",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 22, 50, 2775"
+        },
+        {
+          "at": "2026-09-16T14:51:48.862144",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 12, 49, 2505"
+        },
+        {
+          "at": "2026-09-16T14:51:53.642088",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 11, 49, 2505"
+        },
+        {
+          "at": "2026-09-16T14:51:58.445780",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 12, 50, 2505"
+        },
+        {
+          "at": "2026-09-16T14:52:14.508843",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "790"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1613, 36, 52, 2775"
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "model": "multi",
+      "checkpoint": "experiments/runs/best318_multihead_p3p4p5_detecthead_geometry_v5_input64_sum_e50_lr1e4_r2/weights/best.pt",
+      "method": "best318_framework_multi_head_direct_geometry_v5_input64",
+      "images": 1598,
+      "metrics": {
+        "precision": 0.9541591399764133,
+        "recall": 0.9017094017094017,
+        "map50": 0.9376028849446898,
+        "map75": 0.9154099929507074,
+        "map50_95": 0.8882221152101044
+      },
+      "speed_ms_per_image": {
+        "preprocess": 0.09343442093296553,
+        "inference": 7.9591468219017045,
+        "loss": 0.003275047703290612,
+        "postprocess": 0.11922033021088983
+      },
+      "measured_forward_ms_mean": 7.930425360246773,
+      "measured_forward_ms_p50": 2.279574007843621,
+      "measured_forward_ms_p95": 46.8415787807316,
+      "detail_crops_total": 2067,
+      "detail_crops_per_image": 1.2934918648310387,
+      "wall_seconds_including_warmup": 31.05551623099018,
+      "gpu_snapshots": [
+        {
+          "at": "2026-09-16T14:52:14.627381",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "566"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1389, 15, 52, 2775"
+        },
+        {
+          "at": "2026-09-16T14:52:15.174916",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "774"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1597, 8, 52, 2775"
+        },
+        {
+          "at": "2026-09-16T14:52:19.962569",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "774"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1597, 12, 52, 2505"
+        },
+        {
+          "at": "2026-09-16T14:52:24.665557",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "774"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1597, 11, 52, 2505"
+        },
+        {
+          "at": "2026-09-16T14:52:29.439998",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "774"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1597, 11, 52, 2505"
+        },
+        {
+          "at": "2026-09-16T14:52:45.770466",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "794"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1617, 34, 54, 2775"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "model": "p4",
+      "checkpoint": "experiments/runs/best318_mid_p4_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+      "method": "best318_framework_corrected_single_head_direct_geometry_v5_input64",
+      "images": 1598,
+      "metrics": {
+        "precision": 0.9504504504504504,
+        "recall": 0.9017094017094017,
+        "map50": 0.935256142882769,
+        "map75": 0.9146006851032884,
+        "map50_95": 0.8819242489958212
+      },
+      "speed_ms_per_image": {
+        "preprocess": 0.09305321976300025,
+        "inference": 7.890429156593448,
+        "loss": 0.0032783300617012724,
+        "postprocess": 0.11938206096166962
+      },
+      "measured_forward_ms_mean": 7.861897545325825,
+      "measured_forward_ms_p50": 2.258788008475676,
+      "measured_forward_ms_p95": 46.50938815757399,
+      "detail_crops_total": 2297,
+      "detail_crops_per_image": 1.437421777221527,
+      "wall_seconds_including_warmup": 30.96469640498981,
+      "gpu_snapshots": [
+        {
+          "at": "2026-09-16T14:52:45.945397",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "566"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1389, 34, 54, 2775"
+        },
+        {
+          "at": "2026-09-16T14:52:46.507627",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 23, 54, 2775"
+        },
+        {
+          "at": "2026-09-16T14:52:51.284657",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 12, 53, 2505"
+        },
+        {
+          "at": "2026-09-16T14:52:55.966213",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 10, 54, 2505"
+        },
+        {
+          "at": "2026-09-16T14:53:00.770072",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 7, 54, 2505"
+        },
+        {
+          "at": "2026-09-16T14:53:17.017150",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "790"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1613, 46, 56, 2760"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "model": "p5",
+      "checkpoint": "experiments/runs/best318_low_p5_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+      "method": "best318_framework_corrected_single_head_direct_geometry_v5_input64",
+      "images": 1598,
+      "metrics": {
+        "precision": 0.9513011416837688,
+        "recall": 0.8974358974358975,
+        "map50": 0.9430389183884542,
+        "map75": 0.919773815739148,
+        "map50_95": 0.8906249745165267
+      },
+      "speed_ms_per_image": {
+        "preprocess": 0.09431513737378938,
+        "inference": 7.973635897916905,
+        "loss": 0.003254309166059625,
+        "postprocess": 0.11768985600286491
+      },
+      "measured_forward_ms_mean": 7.944703543878094,
+      "measured_forward_ms_p50": 2.264730501337908,
+      "measured_forward_ms_p95": 47.49214210314668,
+      "detail_crops_total": 2231,
+      "detail_crops_per_image": 1.3961201501877347,
+      "wall_seconds_including_warmup": 30.913253623992205,
+      "gpu_snapshots": [
+        {
+          "at": "2026-09-16T14:53:17.187746",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "566"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1389, 2, 56, 2760"
+        },
+        {
+          "at": "2026-09-16T14:53:17.714076",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 22, 56, 2760"
+        },
+        {
+          "at": "2026-09-16T14:53:22.495231",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 12, 55, 2505"
+        },
+        {
+          "at": "2026-09-16T14:53:27.271843",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 12, 55, 2505"
+        },
+        {
+          "at": "2026-09-16T14:53:32.070351",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 11, 56, 2505"
+        },
+        {
+          "at": "2026-09-16T14:53:48.190019",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "790"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1613, 46, 57, 2760"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "model": "multi",
+      "checkpoint": "experiments/runs/best318_multihead_p3p4p5_detecthead_geometry_v5_input64_sum_e50_lr1e4_r2/weights/best.pt",
+      "method": "best318_framework_multi_head_direct_geometry_v5_input64",
+      "images": 1598,
+      "metrics": {
+        "precision": 0.9541591399764133,
+        "recall": 0.9017094017094017,
+        "map50": 0.9376028849446898,
+        "map75": 0.9154099929507074,
+        "map50_95": 0.8882221152101044
+      },
+      "speed_ms_per_image": {
+        "preprocess": 0.10651178443536294,
+        "inference": 7.981568910601143,
+        "loss": 0.003282955203098111,
+        "postprocess": 0.1196112292579775
+      },
+      "measured_forward_ms_mean": 7.952354271061752,
+      "measured_forward_ms_p50": 2.2966690157772973,
+      "measured_forward_ms_p95": 46.83079975948201,
+      "detail_crops_total": 2067,
+      "detail_crops_per_image": 1.2934918648310387,
+      "wall_seconds_including_warmup": 31.156911742989905,
+      "gpu_snapshots": [
+        {
+          "at": "2026-09-16T14:53:48.328892",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "566"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1389, 46, 57, 2760"
+        },
+        {
+          "at": "2026-09-16T14:53:48.897967",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "774"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1597, 22, 57, 2760"
+        },
+        {
+          "at": "2026-09-16T14:53:53.685264",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "774"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1597, 12, 57, 2505"
+        },
+        {
+          "at": "2026-09-16T14:53:58.495811",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "774"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1597, 12, 57, 2505"
+        },
+        {
+          "at": "2026-09-16T14:54:03.304184",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "774"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1597, 12, 57, 2505"
+        },
+        {
+          "at": "2026-09-16T14:54:19.596924",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "794"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1617, 44, 59, 2760"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "model": "p3",
+      "checkpoint": "experiments/runs/best318_high_p3_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+      "method": "best318_framework_corrected_single_head_direct_geometry_v5_input64",
+      "images": 1598,
+      "metrics": {
+        "precision": 0.9579833307434018,
+        "recall": 0.8931623931623932,
+        "map50": 0.9418166389729706,
+        "map75": 0.9106987741016319,
+        "map50_95": 0.8846312324835252
+      },
+      "speed_ms_per_image": {
+        "preprocess": 0.10719421658856101,
+        "inference": 8.021551915193827,
+        "loss": 0.0033078712873972106,
+        "postprocess": 0.11946352312949782
+      },
+      "measured_forward_ms_mean": 7.992937504275275,
+      "measured_forward_ms_p50": 2.267886506160721,
+      "measured_forward_ms_p95": 48.54993650515097,
+      "detail_crops_total": 2287,
+      "detail_crops_per_image": 1.4311639549436797,
+      "wall_seconds_including_warmup": 31.39128757599974,
+      "gpu_snapshots": [
+        {
+          "at": "2026-09-16T14:54:19.757235",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "566"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1389, 2, 59, 2760"
+        },
+        {
+          "at": "2026-09-16T14:54:20.296772",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 22, 59, 2760"
+        },
+        {
+          "at": "2026-09-16T14:54:25.206611",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 11, 58, 2505"
+        },
+        {
+          "at": "2026-09-16T14:54:29.968296",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 11, 58, 2505"
+        },
+        {
+          "at": "2026-09-16T14:54:34.792692",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 11, 58, 2505"
+        },
+        {
+          "at": "2026-09-16T14:54:51.257118",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "792"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1615, 35, 60, 2760"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "model": "p5",
+      "checkpoint": "experiments/runs/best318_low_p5_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+      "method": "best318_framework_corrected_single_head_direct_geometry_v5_input64",
+      "images": 1598,
+      "metrics": {
+        "precision": 0.9513011416837688,
+        "recall": 0.8974358974358975,
+        "map50": 0.9430389183884542,
+        "map75": 0.919773815739148,
+        "map50_95": 0.8906249745165267
+      },
+      "speed_ms_per_image": {
+        "preprocess": 0.1062075694899386,
+        "inference": 7.925935322710211,
+        "loss": 0.0032540107698404747,
+        "postprocess": 0.11898071804691167
+      },
+      "measured_forward_ms_mean": 7.897287091137276,
+      "measured_forward_ms_p50": 2.2540169884450734,
+      "measured_forward_ms_p95": 46.26851289503963,
+      "detail_crops_total": 2231,
+      "detail_crops_per_image": 1.3961201501877347,
+      "wall_seconds_including_warmup": 30.902211160981096,
+      "gpu_snapshots": [
+        {
+          "at": "2026-09-16T14:54:51.395491",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "566"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1389, 15, 60, 2760"
+        },
+        {
+          "at": "2026-09-16T14:54:51.925876",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 9, 60, 2760"
+        },
+        {
+          "at": "2026-09-16T14:54:56.709910",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 12, 59, 2505"
+        },
+        {
+          "at": "2026-09-16T14:55:01.474666",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 12, 59, 2505"
+        },
+        {
+          "at": "2026-09-16T14:55:06.300900",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 12, 60, 2505"
+        },
+        {
+          "at": "2026-09-16T14:55:22.386218",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "790"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1613, 45, 62, 2760"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "model": "multi",
+      "checkpoint": "experiments/runs/best318_multihead_p3p4p5_detecthead_geometry_v5_input64_sum_e50_lr1e4_r2/weights/best.pt",
+      "method": "best318_framework_multi_head_direct_geometry_v5_input64",
+      "images": 1598,
+      "metrics": {
+        "precision": 0.9541591399764133,
+        "recall": 0.9017094017094017,
+        "map50": 0.9376028849446898,
+        "map75": 0.9154099929507074,
+        "map50_95": 0.8882221152101044
+      },
+      "speed_ms_per_image": {
+        "preprocess": 0.10469141830043291,
+        "inference": 7.977748096213025,
+        "loss": 0.003253264779292597,
+        "postprocess": 0.11905128875274086
+      },
+      "measured_forward_ms_mean": 7.948993871804269,
+      "measured_forward_ms_p50": 2.284720481839031,
+      "measured_forward_ms_p95": 46.82490708801193,
+      "detail_crops_total": 2067,
+      "detail_crops_per_image": 1.2934918648310387,
+      "wall_seconds_including_warmup": 31.077340685995296,
+      "gpu_snapshots": [
+        {
+          "at": "2026-09-16T14:55:22.526096",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "566"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1389, 5, 61, 2760"
+        },
+        {
+          "at": "2026-09-16T14:55:23.067816",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "774"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1597, 21, 62, 2760"
+        },
+        {
+          "at": "2026-09-16T14:55:27.839979",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "774"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1597, 12, 61, 2505"
+        },
+        {
+          "at": "2026-09-16T14:55:32.526059",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "774"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1597, 10, 61, 2505"
+        },
+        {
+          "at": "2026-09-16T14:55:37.332733",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "774"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1597, 9, 61, 2505"
+        },
+        {
+          "at": "2026-09-16T14:55:53.713429",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "794"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1617, 32, 63, 2760"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "model": "p3",
+      "checkpoint": "experiments/runs/best318_high_p3_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+      "method": "best318_framework_corrected_single_head_direct_geometry_v5_input64",
+      "images": 1598,
+      "metrics": {
+        "precision": 0.9579833307434018,
+        "recall": 0.8931623931623932,
+        "map50": 0.9418166389729706,
+        "map75": 0.9106987741016319,
+        "map50_95": 0.8846312324835252
+      },
+      "speed_ms_per_image": {
+        "preprocess": 0.1036986540793179,
+        "inference": 7.919629912203335,
+        "loss": 0.0032854915709608933,
+        "postprocess": 0.11853148253898
+      },
+      "measured_forward_ms_mean": 7.8905295104619455,
+      "measured_forward_ms_p50": 2.2605004924116656,
+      "measured_forward_ms_p95": 47.72680653259149,
+      "detail_crops_total": 2287,
+      "detail_crops_per_image": 1.4311639549436797,
+      "wall_seconds_including_warmup": 30.988534152013017,
+      "gpu_snapshots": [
+        {
+          "at": "2026-09-16T14:55:53.871461",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "566"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1389, 32, 63, 2760"
+        },
+        {
+          "at": "2026-09-16T14:55:54.418890",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 25, 63, 2760"
+        },
+        {
+          "at": "2026-09-16T14:55:59.205953",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 12, 62, 2505"
+        },
+        {
+          "at": "2026-09-16T14:56:03.904672",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 8, 62, 2505"
+        },
+        {
+          "at": "2026-09-16T14:56:08.682618",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 12, 62, 2505"
+        },
+        {
+          "at": "2026-09-16T14:56:24.990099",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "792"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1615, 45, 64, 2760"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "model": "p4",
+      "checkpoint": "experiments/runs/best318_mid_p4_detecthead_geometry_v5_input64_sum_e50_lr1e4_r1/weights/best.pt",
+      "method": "best318_framework_corrected_single_head_direct_geometry_v5_input64",
+      "images": 1598,
+      "metrics": {
+        "precision": 0.9504504504504504,
+        "recall": 0.9017094017094017,
+        "map50": 0.935256142882769,
+        "map75": 0.9146006851032884,
+        "map50_95": 0.8819242489958212
+      },
+      "speed_ms_per_image": {
+        "preprocess": 0.10422159345337983,
+        "inference": 7.887206477426618,
+        "loss": 0.0032968306272886275,
+        "postprocess": 0.11915184827859471
+      },
+      "measured_forward_ms_mean": 7.858298362380049,
+      "measured_forward_ms_p50": 2.2652900079265237,
+      "measured_forward_ms_p95": 46.10678690514759,
+      "detail_crops_total": 2297,
+      "detail_crops_per_image": 1.437421777221527,
+      "wall_seconds_including_warmup": 30.98635655301041,
+      "gpu_snapshots": [
+        {
+          "at": "2026-09-16T14:56:25.143857",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "566"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1389, 2, 63, 2760"
+        },
+        {
+          "at": "2026-09-16T14:56:25.679623",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 27, 63, 2760"
+        },
+        {
+          "at": "2026-09-16T14:56:30.438050",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 11, 62, 2505"
+        },
+        {
+          "at": "2026-09-16T14:56:35.142243",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 11, 62, 2505"
+        },
+        {
+          "at": "2026-09-16T14:56:39.917804",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "770"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1593, 10, 62, 2505"
+        },
+        {
+          "at": "2026-09-16T14:56:56.237543",
+          "apps": [
+            {
+              "pid": 3341,
+              "name": "/usr/bin/anydesk",
+              "memory_mib": "14"
+            },
+            {
+              "pid": 3045,
+              "name": "/usr/libexec/gnome-remote-desktop-daemon",
+              "memory_mib": "430"
+            },
+            {
+              "pid": 425834,
+              "name": "/home/user/anaconda3/envs/bgd/bin/python",
+              "memory_mib": "790"
+            }
+          ],
+          "gpu": "0, NVIDIA RTX 6000 Ada Generation, 1613, 35, 64, 2760"
+        }
+      ]
+    }
+  ]
+}
