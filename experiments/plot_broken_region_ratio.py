@@ -60,15 +60,16 @@ def plot(values: np.ndarray, output: Path, bins: int) -> tuple[np.ndarray, np.nd
     })
     edges = np.linspace(0.0, 1.0, bins + 1)
     counts, _ = np.histogram(values, bins=edges)
-    centers = (edges[:-1] + edges[1:]) / 2
-    width = (edges[1] - edges[0]) * .90
+    widths = np.diff(edges)
 
-    fig, ax = plt.subplots(figsize=(8, 4.8))
+    # A compact, near-square paper figure. Drawing bars from their left bin
+    # edges at the full bin width makes adjacent intervals touch exactly.
+    fig, ax = plt.subplots(figsize=(6.0, 5.0))
     ax.set_facecolor("#F8F8F8")
     ax.grid(True, linestyle="-", linewidth=1.5, color="white", alpha=.9, axis="y")
     ax.set_axisbelow(True)
-    bars = ax.bar(centers, counts, width=width, color="#4F68D9",
-                  edgecolor="black", linewidth=.6, zorder=3)
+    bars = ax.bar(edges[:-1], counts, width=widths, align="edge",
+                  color="#4F68D9", edgecolor="black", linewidth=.6, zorder=3)
     for bar, count in zip(bars, counts):
         ax.annotate(str(int(count)),
                     xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
@@ -104,7 +105,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset-root", type=Path, required=True)
     parser.add_argument("--splits", nargs="+", default=["train", "val", "test"])
-    parser.add_argument("--bins", type=int, default=20,
+    parser.add_argument("--bins", type=int, default=10,
                         help="equal-width bins over the fixed [0,1] range")
     parser.add_argument("--output", type=Path, required=True,
                         help="output stem; PNG/SVG/PDF/JSON/CSV are generated")
