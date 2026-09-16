@@ -56,8 +56,8 @@ def plot(resolutions: Counter, output: Path) -> None:
     ax.set_facecolor("#F8F8F8")
     ax.grid(True, linestyle="-", linewidth=1.5, color="white", alpha=.9)
     ax.set_axisbelow(True)
-    ax.scatter(widths, heights, s=areas, color="#6F92E8", alpha=.48,
-               edgecolor="white", linewidth=.35, zorder=3)
+    ax.scatter(widths, heights, s=areas, color="#5F7FDC", alpha=.62,
+               edgecolor="#A6ADB7", linewidth=.35, zorder=3)
 
     # Label only separated high-frequency modes; nearby 1080x1440 is visible
     # as an overlapping bubble but deliberately not given a colliding label.
@@ -76,8 +76,8 @@ def plot(resolutions: Counter, output: Path) -> None:
                     xytext=offset, textcoords="offset points",
                     ha="left", va="bottom", fontsize=8.2,
                     bbox={"boxstyle": "round,pad=0.22", "facecolor": "white",
-                          "edgecolor": "#87A6E8", "linewidth": .7, "alpha": .92},
-                    arrowprops={"arrowstyle": "-", "color": "#7896D5", "linewidth": .65})
+                          "edgecolor": "#7894DA", "linewidth": .7, "alpha": .92},
+                    arrowprops={"arrowstyle": "-", "color": "#667FC5", "linewidth": .65})
 
     ax.set_xlabel("Image Width (pixels)")
     ax.set_ylabel("Image Height (pixels)")
