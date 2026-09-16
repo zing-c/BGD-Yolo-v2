@@ -74,8 +74,8 @@ def plot(boxes: np.ndarray, output: Path, grid_size: int) -> tuple[np.ndarray, n
     counts = occupancy_map(boxes, grid_size)
     normalized = counts.astype(np.float64) / counts.max()
     cmap = LinearSegmentedColormap.from_list(
-        "damage_occupancy", ["#FFFFE5", "#FFF7BC", "#D9F0A3",
-                             "#ADDD8E", "#78C679", "#31A354", "#006837"])
+        "damage_occupancy", ["#FFF9E6", "#F6E6A9", "#E3EABD",
+                             "#C7EFCF", "#9BD8B5", "#70B893", "#4D9470"])
 
     fig, ax = plt.subplots(figsize=(6.0, 5.0))
     ax.set_facecolor("#F8F8F8")
@@ -137,7 +137,7 @@ def main() -> None:
         "rasterization": "each bbox increments every grid cell it intersects",
         "smoothing": "none", "visual_interpolation": "nearest",
         "display_color_norm": "linear", "heat_value_range": [0.0, 1.0],
-        "colormap": "yellow-to-green (#FFFFE5 to #006837)",
+        "colormap": "pastel yellow-to-green (#FFF9E6 to #4D9470)",
         "one_is_not_probability": "1.0 is the maximum relative occurrence, not 100% of images",
         "splits": splits, "instances": int(len(boxes)),
         "maximum_coverage_count": int(counts.max()),
