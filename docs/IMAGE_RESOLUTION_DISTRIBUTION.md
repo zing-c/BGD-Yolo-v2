@@ -2,7 +2,7 @@
 
 ![Image-resolution distribution](assets/dataset_statistics/image_resolution_distribution.png)
 
-统计当前正式 `mydata/images/train`、`val`、`test` 中所有实际存在图片的原始存储分辨率。横轴为图片宽度，纵轴为图片高度；相同 `width × height` 聚合为一个气泡，气泡面积随该分辨率的图片数量线性增大，并保留最小显示面积以确保单例分辨率可见。气泡采用中等饱和度的半透明蓝色和浅灰色细边，密集区域通过透明叠加自然显现，不使用容易发黑的黑色描边。
+统计当前正式 `mydata/images/train`、`val`、`test` 中所有实际存在图片的原始存储分辨率。横轴为图片宽度，纵轴为图片高度；相同 `width × height` 聚合为一个气泡，气泡面积随该分辨率的图片数量线性增大，并保留最小显示面积以确保单例分辨率可见。气泡采用中等饱和度的半透明蓝色，外边线与内部使用相同蓝色，密集区域通过透明叠加自然显现，不使用容易发黑的黑色描边。
 
 | Split | 图片数 |
 |---|---:|

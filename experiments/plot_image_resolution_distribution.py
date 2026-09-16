@@ -57,7 +57,7 @@ def plot(resolutions: Counter, output: Path) -> None:
     ax.grid(True, linestyle="-", linewidth=1.5, color="white", alpha=.9)
     ax.set_axisbelow(True)
     ax.scatter(widths, heights, s=areas, color="#5F7FDC", alpha=.62,
-               edgecolor="#A6ADB7", linewidth=.35, zorder=3)
+               edgecolor="#5F7FDC", linewidth=.35, zorder=3)
 
     # Label only separated high-frequency modes; nearby 1080x1440 is visible
     # as an overlapping bubble but deliberately not given a colliding label.
