@@ -1,0 +1,50 @@
+{
+  "source": "user-supplied rounded scene shares",
+  "supplied_percent_total": 99,
+  "rounding_note": "reported integer percentages sum to 99; labels are preserved verbatim",
+  "pie_geometry": "Matplotlib normalizes the 47:15:15:10:7:5 ratio to 360 degrees",
+  "categories": [
+    {
+      "name": "Window",
+      "reported_percentage": 47,
+      "color": "#4F68D9",
+      "normalized_angular_share_percentage": 47.474747474747474
+    },
+    {
+      "name": "Glass door",
+      "reported_percentage": 15,
+      "color": "#7399E6",
+      "normalized_angular_share_percentage": 15.151515151515152
+    },
+    {
+      "name": "Glass curtain wall",
+      "reported_percentage": 15,
+      "color": "#65B9B4",
+      "normalized_angular_share_percentage": 15.151515151515152
+    },
+    {
+      "name": "Others",
+      "reported_percentage": 10,
+      "color": "#F0B35F",
+      "normalized_angular_share_percentage": 10.1010101010101
+    },
+    {
+      "name": "Glass railing",
+      "reported_percentage": 7,
+      "color": "#DB7C78",
+      "normalized_angular_share_percentage": 7.070707070707071
+    },
+    {
+      "name": "Glass ceiling",
+      "reported_percentage": 5,
+      "color": "#9679C7",
+      "normalized_angular_share_percentage": 5.05050505050505
+    }
+  ],
+  "figure_inches": [
+    6.0,
+    5.0
+  ],
+  "png_dpi": 300,
+  "legend": false
+}
