@@ -1,0 +1,41 @@
+{
+  "source": "experiments/analysis/input64_multi_visual_00657_val_20260916",
+  "style": "borderless scientific image only",
+  "model_inference_executed": false,
+  "cam_values_modified": false,
+  "coordinates_or_confidences_modified": false,
+  "external_margin_pixels": 0,
+  "external_titles": false,
+  "external_notes": false,
+  "external_legends": false,
+  "inter_panel_gutter_pixels": 0,
+  "white_fill": "none",
+  "prediction_label": "broken glass: {confidence:.3f}",
+  "prediction_label_fill": "red",
+  "prediction_label_text_color": "white",
+  "cases": [
+    {
+      "image": "00657",
+      "head": "multi",
+      "metadata_sha256": "af0df97602946fe134a76453dbcff2b925d0a7956f2fd5bbb410b7b4309bc85a",
+      "cam_grayscale_sha256": "32eb1f870a4aeffdcea2d307ed77c8dce25b469317821bb97bd1b6316736155e",
+      "actual_detail_crops": 10,
+      "unique_detail_crops": 2,
+      "wrong_region_unique_crops": 0,
+      "before_counts": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "after_counts": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "single_panel_size_wh": [
+        1246,
+        1600
+      ]
+    }
+  ]
+}

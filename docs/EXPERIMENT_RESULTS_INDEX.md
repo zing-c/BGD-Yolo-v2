@@ -6,6 +6,7 @@
 |---|---|
 | [破损区域框 / 整图面积比例分布](BROKEN_REGION_RATIO_DISTRIBUTION.md) | Train/Val/Test 共 2,118 个 GT 框，0.1 间隔的 10 个等宽 bins；柱间无缝、横轴两端留白、无图例；PNG/SVG/PDF、CSV、JSON 与可复现脚本 |
 | [当前正确版本：P3/P4/P5 单头与 P3+P4+P5 三头 r2 总表](DIRECT_INPUT64_CURRENT_SINGLE_MULTI_RESULTS_20260916.md) | 四组 50 epoch 的 Val-best / Test、参数量、模块 GFLOPs、延迟口径和四个可下载 best.pt；三头不自动优于最佳单头 |
+| [Val 00657：P3+P4+P5 三头完整可视化](DIRECT_INPUT64_MULTI_00657_VISUALIZATION_20260916.md) | 三头 r2 的融合前后检测、真实聚合 Grad-CAM、两个原生 Detail 区域和全部 conf>0.2 候选；如实保留墙面非目标响应 |
 | [Test 00756：P3+P4+P5 三头完整可视化](DIRECT_INPUT64_MULTI_00756_VISUALIZATION_20260916.md) | 三头 r2 的真实聚合 Grad-CAM、Detail 64×64 输入、conf>0.2 候选、融合前后检测与逐头 CAM 数值；无外部白边和标题 |
 | [三头 r2 改善可视化：00601 / 00890](DIRECT_INPUT64_MULTI_IMPROVEMENT_VISUALS_20260916.md) | 完整 Test 严格筛选；00601 外墙误检 0.552→区域最高 0.396 且正确玻璃保留，00890 正确框 0.679→0.742；真实 CAM / Detail 截图、无外部白边；同时披露整体工作点退化 |
 | [三头 r2 完成记录](DIRECT_INPUT64_MULTIHEAD_RERUN_20260916.md) | 第 40 轮 Val-best、完整 Test、r1/r2 tensor 级确定性核验、配置与联合 best.pt 下载位置 |

@@ -82,7 +82,7 @@ def plot(values: np.ndarray, output: Path, bins: int) -> tuple[np.ndarray, np.nd
                  pad=15, fontweight="bold")
     # Keep bins mutually flush while leaving a small visual margin between the
     # outermost bars and the left/right axes.
-    ax.set_xlim(-0.025, 1.025)
+    ax.set_xlim(-0.05, 1.05)
     ax.set_xticks(np.linspace(0.0, 1.0, 11))
     ax.set_xticklabels([f"{value:.1f}" for value in np.linspace(0.0, 1.0, 11)])
     ax.set_ylim(0, max(counts) * 1.16)
