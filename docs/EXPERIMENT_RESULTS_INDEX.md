@@ -4,6 +4,7 @@
 
 | 文档 | 内容与使用范围 |
 |---|---|
+| [破损位置分布热力图](DAMAGE_LOCATION_DISTRIBUTION.md) | Train/Val/Test 共 2,118 个 GT 框的归一化中心点，左上角为坐标原点；20×20 精确分箱、热力图、CSV/JSON 与可复现脚本 |
 | [原图分辨率分布气泡图](IMAGE_RESOLUTION_DISTRIBUTION.md) | 当前 Train/Val/Test 共 3,933 张图片的原始 width×height；气泡面积表示相同分辨率数量；与面积比例图等高，含 PNG/SVG/PDF、CSV、JSON 和脚本 |
 | [破损区域框 / 整图面积比例分布](BROKEN_REGION_RATIO_DISTRIBUTION.md) | Train/Val/Test 共 2,118 个 GT 框，0.1 间隔的 10 个等宽 bins；柱间无缝、横轴两端留白、无图例；PNG/SVG/PDF、CSV、JSON 与可复现脚本 |
 | [当前正确版本：P3/P4/P5 单头与 P3+P4+P5 三头 r2 总表](DIRECT_INPUT64_CURRENT_SINGLE_MULTI_RESULTS_20260916.md) | 四组 50 epoch 的 Val-best / Test、参数量、模块 GFLOPs、延迟口径和四个可下载 best.pt；三头不自动优于最佳单头 |
