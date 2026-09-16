@@ -74,8 +74,8 @@ def plot(boxes: np.ndarray, output: Path, grid_size: int) -> tuple[np.ndarray, n
     counts = occupancy_map(boxes, grid_size)
     normalized = counts.astype(np.float64) / counts.max()
     cmap = LinearSegmentedColormap.from_list(
-        "damage_occupancy", ["#FFF9E6", "#F6E6A9", "#E3EABD",
-                             "#C7EFCF", "#9BD8B5", "#70B893", "#4D9470"])
+        "damage_occupancy", ["#FFFFE5", "#FFF7BC", "#D9F0A3",
+                             "#ADDD8E", "#78C679", "#31A354", "#006837"])
 
     fig, ax = plt.subplots(figsize=(6.0, 5.0))
     ax.set_facecolor("#F8F8F8")
@@ -93,14 +93,12 @@ def plot(boxes: np.ndarray, output: Path, grid_size: int) -> tuple[np.ndarray, n
     ax.set_title("Damage-Location Distribution", fontsize=12,
                  pad=15, fontweight="bold")
     for spine in ax.spines.values():
-        spine.set_linewidth(.8)
-        spine.set_color("#4B5563")
+        spine.set_visible(False)
     colorbar = fig.colorbar(image, ax=ax, fraction=.052, pad=.035)
     colorbar.set_ticks(np.linspace(0.0, 1.0, 6))
     colorbar.set_label("Normalized GT-Box Occupancy", fontsize=10)
     colorbar.ax.tick_params(labelsize=9)
-    colorbar.outline.set_linewidth(.6)
-    colorbar.outline.set_edgecolor("#4B5563")
+    colorbar.outline.set_visible(False)
     fig.tight_layout()
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output.with_suffix(".png"), dpi=300, facecolor="white")
@@ -137,7 +135,8 @@ def main() -> None:
         "rasterization": "each bbox increments every grid cell it intersects",
         "smoothing": "none", "visual_interpolation": "nearest",
         "display_color_norm": "linear", "heat_value_range": [0.0, 1.0],
-        "colormap": "pastel yellow-to-green (#FFF9E6 to #4D9470)",
+        "colormap": "yellow-to-green (#FFFFE5 to #006837)",
+        "plot_border": "none", "colorbar_border": "none",
         "one_is_not_probability": "1.0 is the maximum relative occurrence, not 100% of images",
         "splits": splits, "instances": int(len(boxes)),
         "maximum_coverage_count": int(counts.max()),
