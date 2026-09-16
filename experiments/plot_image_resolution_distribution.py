@@ -49,15 +49,15 @@ def plot(resolutions: Counter, output: Path) -> None:
 
     # Matplotlib's `s` is marker area in pt^2. The variable part is linear in
     # image count; the small floor keeps singleton resolutions visible.
-    areas = 18.0 + 1000.0 * counts / counts.max()
+    areas = 10.0 + 900.0 * counts / counts.max()
 
     # Match the 6 x 5 inch height and output dimensions of the ratio chart.
     fig, ax = plt.subplots(figsize=(6.0, 5.0))
     ax.set_facecolor("#F8F8F8")
     ax.grid(True, linestyle="-", linewidth=1.5, color="white", alpha=.9)
     ax.set_axisbelow(True)
-    ax.scatter(widths, heights, s=areas, color="#4F68D9", alpha=.62,
-               edgecolor="black", linewidth=.55, zorder=3)
+    ax.scatter(widths, heights, s=areas, color="#6F92E8", alpha=.48,
+               edgecolor="white", linewidth=.35, zorder=3)
 
     # Label only separated high-frequency modes; nearby 1080x1440 is visible
     # as an overlapping bubble but deliberately not given a colliding label.
@@ -76,8 +76,8 @@ def plot(resolutions: Counter, output: Path) -> None:
                     xytext=offset, textcoords="offset points",
                     ha="left", va="bottom", fontsize=8.2,
                     bbox={"boxstyle": "round,pad=0.22", "facecolor": "white",
-                          "edgecolor": "#777777", "linewidth": .55, "alpha": .88},
-                    arrowprops={"arrowstyle": "-", "color": "#777777", "linewidth": .55})
+                          "edgecolor": "#87A6E8", "linewidth": .7, "alpha": .92},
+                    arrowprops={"arrowstyle": "-", "color": "#7896D5", "linewidth": .65})
 
     ax.set_xlabel("Image Width (pixels)")
     ax.set_ylabel("Image Height (pixels)")
@@ -87,7 +87,7 @@ def plot(resolutions: Counter, output: Path) -> None:
     ax.set_ylim(0, heights.max() * 1.06)
     for spine in ax.spines.values():
         spine.set_linewidth(.8)
-        spine.set_color("black")
+        spine.set_color("#4B5563")
     # There is one dataset distribution, so no categorical legend is needed.
     fig.tight_layout()
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -126,7 +126,7 @@ def main() -> None:
              "percentage": 100 * count / total}
             for width, height, count in rows[:20]
         ],
-        "bubble_area": "18 + 1000 * resolution_count / maximum_resolution_count (pt^2)",
+        "bubble_area": "10 + 900 * resolution_count / maximum_resolution_count (pt^2)",
         "figure_inches": [6.0, 5.0], "png_dpi": 300, "legend": False,
     }
     args.output.with_suffix(".json").write_text(json.dumps(report, indent=2) + "\n")
