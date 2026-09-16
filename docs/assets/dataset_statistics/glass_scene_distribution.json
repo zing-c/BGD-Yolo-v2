@@ -7,44 +7,46 @@
     {
       "name": "Window",
       "reported_percentage": 47,
-      "color": "#4F68D9",
+      "color": "#EAD8C9",
       "normalized_angular_share_percentage": 47.474747474747474
     },
     {
       "name": "Glass door",
       "reported_percentage": 15,
-      "color": "#7399E6",
+      "color": "#C7EFCF",
       "normalized_angular_share_percentage": 15.151515151515152
     },
     {
       "name": "Glass curtain wall",
       "reported_percentage": 15,
-      "color": "#65B9B4",
+      "color": "#FFC7C7",
       "normalized_angular_share_percentage": 15.151515151515152
     },
     {
       "name": "Others",
       "reported_percentage": 10,
-      "color": "#F0B35F",
+      "color": "#D8CEF4",
       "normalized_angular_share_percentage": 10.1010101010101
     },
     {
       "name": "Glass railing",
       "reported_percentage": 7,
-      "color": "#DB7C78",
+      "color": "#C6DDF2",
       "normalized_angular_share_percentage": 7.070707070707071
     },
     {
       "name": "Glass ceiling",
       "reported_percentage": 5,
-      "color": "#9679C7",
+      "color": "#F6E6A9",
       "normalized_angular_share_percentage": 5.05050505050505
     }
   ],
   "figure_inches": [
-    6.0,
-    5.0
+    7.2,
+    7.6
   ],
-  "png_dpi": 300,
-  "legend": false
+  "png_dpi": 180,
+  "legend": false,
+  "labels": "inside wedges",
+  "hatches": false
 }

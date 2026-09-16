@@ -8,18 +8,19 @@ import json
 from pathlib import Path
 
 import matplotlib
+import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
 CATEGORIES = [
-    ("Window", 47, "#4F68D9"),
-    ("Glass door", 15, "#7399E6"),
-    ("Glass curtain wall", 15, "#65B9B4"),
-    ("Others", 10, "#F0B35F"),
-    ("Glass railing", 7, "#DB7C78"),
-    ("Glass ceiling", 5, "#9679C7"),
+    ("Window", 47, "#EAD8C9"),
+    ("Glass door", 15, "#C7EFCF"),
+    ("Glass curtain wall", 15, "#FFC7C7"),
+    ("Others", 10, "#D8CEF4"),
+    ("Glass railing", 7, "#C6DDF2"),
+    ("Glass ceiling", 5, "#F6E6A9"),
 ]
 
 
@@ -30,26 +31,40 @@ def plot(output: Path) -> None:
     })
     values = [value for _, value, _ in CATEGORIES]
     colors = [color for _, _, color in CATEGORIES]
-    labels = [f"{name}\n{value}%" for name, value, _ in CATEGORIES]
-
-    fig, ax = plt.subplots(figsize=(6.0, 5.0))
+    angular_percentages = np.asarray(values, dtype=np.float64) / sum(values) * 100
+    display_names = ["Window", "Glass\ndoor", "Glass curtain\nwall",
+                     "Others", "Glass\nrailing", "Glass\nceiling"]
+    fig, ax = plt.subplots(figsize=(7.2, 7.6), dpi=180)
     fig.patch.set_facecolor("white")
-    _, texts = ax.pie(
-        values, labels=labels, colors=colors, startangle=90, counterclock=False,
-        labeldistance=1.10, radius=.88,
-        wedgeprops={"edgecolor": "white", "linewidth": 1.5},
-        textprops={"fontsize": 9.5, "color": "#202530"},
+    wedges, _ = ax.pie(
+        values, colors=colors, startangle=112, counterclock=False,
+        wedgeprops={"edgecolor": "white", "linewidth": 2.2},
     )
-    for text in texts:
-        text.set_ha("center")
-    ax.set_title("Glass-Scene Distribution", fontsize=12,
-                 pad=15, fontweight="bold")
-    ax.axis("equal")
-    fig.tight_layout()
+    for wedge, name, reported, angular_pct in zip(
+            wedges, display_names, values, angular_percentages):
+        angle = np.deg2rad((wedge.theta1 + wedge.theta2) / 2)
+        if angular_pct >= 30:
+            radius, fontsize = .58, 25
+        elif angular_pct >= 14:
+            radius, fontsize = .64, 19
+        elif angular_pct >= 9:
+            radius, fontsize = .70, 19
+        else:
+            radius, fontsize = .76, 17
+        x, y = radius * np.cos(angle), radius * np.sin(angle)
+        ax.text(x, y, f"{name}\n{reported}%", ha="center", va="center",
+                fontsize=fontsize, fontfamily="DejaVu Sans", color="black",
+                linespacing=1.12)
+
+    ax.set_aspect("equal")
+    ax.set_axis_off()
+    ax.set_xlim(-1.08, 1.08)
+    ax.set_ylim(-1.25, 1.08)
+    fig.tight_layout(pad=.2)
     output.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output.with_suffix(".png"), dpi=300, facecolor="white")
-    fig.savefig(output.with_suffix(".svg"), facecolor="white")
-    fig.savefig(output.with_suffix(".pdf"), facecolor="white")
+    fig.savefig(output.with_suffix(".png"), dpi=180, bbox_inches="tight", facecolor="white")
+    fig.savefig(output.with_suffix(".svg"), bbox_inches="tight", facecolor="white")
+    fig.savefig(output.with_suffix(".pdf"), bbox_inches="tight", facecolor="white")
     plt.close(fig)
     svg = output.with_suffix(".svg")
     svg.write_text("\n".join(line.rstrip() for line in svg.read_text().splitlines()) + "\n")
@@ -73,7 +88,8 @@ def main() -> None:
              "normalized_angular_share_percentage": 100 * value / supplied_total}
             for name, value, color in CATEGORIES
         ],
-        "figure_inches": [6.0, 5.0], "png_dpi": 300, "legend": False,
+        "figure_inches": [7.2, 7.6], "png_dpi": 180, "legend": False,
+        "labels": "inside wedges", "hatches": False,
     }
     args.output.with_suffix(".json").write_text(json.dumps(report, indent=2) + "\n")
     with args.output.with_suffix(".csv").open("w", newline="") as stream:

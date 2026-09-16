@@ -13,6 +13,6 @@ BrokenGlass 数据集包含六类玻璃场景：窗户（Window）占比最高�
 | Glass railing | 7% |
 | Glass ceiling | 5% |
 
-给定的整数百分比合计为 99%，这是比例取整造成的误差。图中标签严格保留上述报告数值，不擅自修改任何类别；饼图角度由绘图库按照 `47:15:15:10:7:5` 的相对比例归一化到 360°。画布为 6×5 inches、300 DPI，PNG 输出尺寸为 1800×1500；类别直接标注在扇区外，不设置重复图例。
+给定的整数百分比合计为 99%，这是比例取整造成的误差。图中标签严格保留上述报告数值，不擅自修改任何类别；饼图角度由绘图库按照 `47:15:15:10:7:5` 的相对比例归一化到 360°。样式参照用户提供的绘图代码：7.2×7.6 inches、180 DPI、柔和纯色配色和白色粗分隔线，不使用纹理；类别及百分比直接放在扇区内部，不设置标题或图例。
 
 下载：[PNG](assets/dataset_statistics/glass_scene_distribution.png) · [SVG](assets/dataset_statistics/glass_scene_distribution.svg) · [PDF](assets/dataset_statistics/glass_scene_distribution.pdf) · [CSV](assets/dataset_statistics/glass_scene_distribution.csv) · [统计 JSON](assets/dataset_statistics/glass_scene_distribution.json)。可复现脚本：[plot_glass_scene_distribution.py](../experiments/plot_glass_scene_distribution.py)。
