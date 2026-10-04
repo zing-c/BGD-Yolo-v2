@@ -98,7 +98,9 @@ class BaseValidator:
         if self.training:
             self.device = trainer.device
             self.data = trainer.data
-            model = trainer.model # trainer.ema.ema or
+            # Validate the same EMA model that is persisted as best.pt so
+            # early stopping metrics remain reproducible after training.
+            model = trainer.ema.ema if trainer.ema else trainer.model
             self.args.half = self.device.type != 'cpu'  # force FP16 val during training
             model = model.half() if self.args.half else model.float()
             self.model = model
@@ -158,6 +160,13 @@ class BaseValidator:
             # Inference
             with dt[1]:
                 model.batch = batch
+                # Standalone validation wraps PyTorch checkpoints in
+                # AutoBackend. Custom forward paths that need dataloader
+                # metadata execute on its inner model, so keep both objects in
+                # sync (training-time validation uses the model directly).
+                inner_model = getattr(model, 'model', None)
+                if inner_model is not None:
+                    inner_model.batch = batch
                 preds = model(batch['img'], augment=self.args.augment)
 
             # Loss
@@ -175,6 +184,14 @@ class BaseValidator:
                 self.plot_predictions(batch, preds, batch_i)
 
             self.run_callbacks('on_val_batch_end')
+        # ``batch`` is runtime-only metadata used by BGD crop/CAM forwards.
+        # Keeping the last batch attached to a model makes EMA checkpoints
+        # serialize original full-resolution images (hundreds of MB per file).
+        # Clear it, including the standalone AutoBackend inner model, as soon
+        # as all validation batches have finished.
+        for candidate in (model, getattr(model, 'model', None)):
+            if candidate is not None and hasattr(candidate, 'batch'):
+                candidate.batch = None
         stats = self.get_stats()
         self.check_stats(stats)
         self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1E3 for x in dt)))

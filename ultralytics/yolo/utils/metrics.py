@@ -512,7 +512,8 @@ def compute_ap(recall, precision):
     method = 'interp'  # methods: 'continuous', 'interp'
     if method == 'interp':
         x = np.linspace(0, 1, 101)  # 101-point interp (COCO)
-        ap = np.trapz(np.interp(x, mrec, mpre), x)  # integrate
+        integrate = getattr(np, 'trapezoid', None) or np.trapz
+        ap = integrate(np.interp(x, mrec, mpre), x)  # integrate
     else:  # 'continuous'
         i = np.where(mrec[1:] != mrec[:-1])[0]  # points where x-axis (recall) changes
         ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])  # area under curve
@@ -734,7 +735,9 @@ class Metric(SimpleClass):
 
     def fitness(self):
         """Model fitness as a weighted combination of metrics."""
-        w = [0.0, 0.0, 0.1,0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
+        # This project selects checkpoints by validation mAP50. mAP75 and
+        # mAP50-95 remain reported and are checked explicitly on the test set.
+        w = [0.0, 0.0, 1.0, 0.0, 0.0]  # [P, R, mAP50, mAP75, mAP50-95]
         return (np.array(self.mean_results()) * w).sum()
 
     def update(self, results):

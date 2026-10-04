@@ -3,7 +3,18 @@
 import re
 from pathlib import Path
 
-import pkg_resources as pkg
+try:
+    import pkg_resources as pkg
+except ImportError:  # setuptools >= 81 may no longer expose pkg_resources
+    from packaging.requirements import Requirement
+
+    class _PkgResourcesCompat:
+        @staticmethod
+        def parse_requirements(text):
+            lines = (line.split('#', 1)[0].strip() for line in text.splitlines())
+            return (Requirement(line) for line in lines if line)
+
+    pkg = _PkgResourcesCompat()
 from setuptools import find_packages, setup
 
 # Settings

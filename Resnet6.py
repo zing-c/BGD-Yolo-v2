@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from triton.ops.blocksparse import softmax
 
 
 class ResNet6(nn.Module):
@@ -571,6 +570,19 @@ class Detail_Net_attn_dialation(nn.Module):
         return self.sigmoid(out)
 
 class Detail_Net_attn_block(nn.Module):
+    """Feature-only Detail encoder returning a three-channel 4x4 map for 64x64 input."""
+
+    _LEGACY_UNUSED_MODULES = (
+        "conv1", "bn1", "pool1",
+        "conv2", "bn2", "pool2",
+        "conv3", "bn3", "pool3",
+        "shortcut", "conv4", "bn4",
+        "relu1", "relu2", "relu3", "relu5",
+        "atten_large1", "atten_medium1",
+        "conv_for_yolo_mid", "bn_for_yolo_mid", "relu_for_yolo_mid",
+        "conv_for_yolo_low", "bn_for_yolo_low", "relu_for_yolo_low",
+    )
+
     def __init__(self):
         super(Detail_Net_attn_block, self).__init__()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -661,38 +673,12 @@ class Detail_Net_attn_block(nn.Module):
             nn.BatchNorm2d(64)
         )
 
-        # 输入层：64x64 图片，3通道（RGB）
-        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, padding=1)
-        self.bn1 = nn.BatchNorm2d(16)  # 批归一化
-        self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)  # 池化层
-
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
-        self.bn2 = nn.BatchNorm2d(32)
-        self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-        self.bn3 = nn.BatchNorm2d(64)
-        self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        # 残差连接
-        self.shortcut = nn.Sequential(
-            nn.Conv2d(64, 128, kernel_size=1, stride=1),  # 1x1 卷积调整通道数和尺寸
-            nn.BatchNorm2d(128)
-        )
         self.relu = nn.ReLU()
-        self.conv4 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
-        self.bn4 = nn.BatchNorm2d(128)
-        self.relu1 = nn.ReLU()
-        self.relu2 = nn.ReLU()
-        self.relu3 = nn.ReLU()
         self.relu4 = nn.ReLU()
-        self.relu5 = nn.ReLU()
 
-        #ATTN
-        self.atten_large1 = detail_atten(dim=32)
+        # Attention blocks used by the three active routes.
         self.atten_large = detail_atten(dim=128)
         self.atten_medium = detail_atten(dim=64)
-        self.atten_medium1 = detail_atten(dim=32)
         self.atten_small = detail_atten(dim=64)
 
         self.conv_l = nn.Conv2d(128, 1, kernel_size=1)
@@ -700,17 +686,14 @@ class Detail_Net_attn_block(nn.Module):
         self.conv_s = nn.Conv2d(64, 1, kernel_size=1)
         self.bn_cat=  nn.BatchNorm2d(3)
 
-        self.conv_for_yolo_mid = nn.Conv2d(64+3, 64, kernel_size=3,padding=1)
+    def prune_legacy_unused_modules(self):
+        """Remove dead V1 modules retained by older pickled checkpoints."""
+        for name in self._LEGACY_UNUSED_MODULES:
+            if hasattr(self, name):
+                delattr(self, name)
+        return self
 
-        self.bn_for_yolo_mid = nn.BatchNorm2d(64)
-        self.relu_for_yolo_mid = nn.ReLU()
-
-        self.conv_for_yolo_low = nn.Conv2d(64 + 3, 64, kernel_size=3, padding=1)
-        
-        self.bn_for_yolo_low = nn.BatchNorm2d(64)
-        self.relu_for_yolo_low = nn.ReLU()
-
-    def forward(self, x):
+    def _forward_routes(self, x):
         x = self.pool(x)
         # Large Route
         short_cut = self.shortcut_L_l1(x)
@@ -744,15 +727,20 @@ class Detail_Net_attn_block(nn.Module):
         # Small Route
         short_cut = self.shortcut_S_l1(x)
         x_S = self.small_route_l1(x) + short_cut
-        x_M = self.relu(x_M)
+        x_S = self.relu(x_S)
         short_cut = self.shortcut_S_l2(x_S)
         x_S = self.small_route_l2(x_S) + short_cut
-        x_M = self.relu(x_M)
+        x_S = self.relu(x_S)
 
         # 加入 attention 模块
         x_L = self.atten_large(x_L)  # shape: [B, 128, 8, 8]
         x_M = self.atten_medium(x_M)  # shape: [B, 64, 8, 8]
         x_S = self.atten_small(x_S)  # shape: [B, 64, 8, 8]
+
+        return x_L, x_M, x_S
+
+    def forward(self, x):
+        x_L, x_M, x_S = self._forward_routes(x)
 
         x_L = self.conv_l(x_L)  # shape: [B, 128, 8, 8]
         x_M = self.conv_m(x_M)  # shape: [B, 64, 8, 8]
@@ -767,7 +755,28 @@ class Detail_Net_attn_block(nn.Module):
 
 
 
-        return concatenated
+        return concatenated  # [N, 3, 4, 4] for [N, 3, 64, 64] input
+
+
+class Detail_Net_attn_semantic(Detail_Net_attn_block):
+    """Reuse the pretrained Detail routes while retaining semantic channels."""
+
+    def __init__(self, out_channels=64):
+        super().__init__()
+        self.out_channels = int(out_channels)
+        groups = 8 if self.out_channels % 8 == 0 else 1
+        self.semantic_head = nn.Sequential(
+            nn.Conv2d(128 + 64 + 64, self.out_channels, kernel_size=1, bias=False),
+            nn.GroupNorm(groups, self.out_channels),
+            nn.SiLU(inplace=True),
+            nn.Conv2d(self.out_channels, self.out_channels, kernel_size=3, padding=1, bias=False),
+            nn.GroupNorm(groups, self.out_channels),
+            nn.SiLU(inplace=True),
+        )
+
+    def forward(self, x):
+        routes = self._forward_routes(x)
+        return self.semantic_head(torch.cat(routes, dim=1))
 
 
 class ResidualBlock(nn.Module):
@@ -1229,3 +1238,9 @@ class demo1(nn.Module):
         x = torch.sigmoid(self.fc2(x))  # 二分类输出
 
         return x
+
+
+# Active public Detail implementation.
+# The clean YOLO-FineDet release intentionally keeps the historical wide
+# Detail_Net_attn_block defined above; compressed-Detail ablations live on the
+# experiment archive branches and are not dependencies of this release.

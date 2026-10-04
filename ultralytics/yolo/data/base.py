@@ -68,6 +68,10 @@ class BaseDataset(Dataset):
         self.single_cls = single_cls
         self.prefix = prefix
         self.fraction = fraction
+        # Legacy BGD/Grad-CAM forwards consume the unresized RGB image.  Plain
+        # detector training can disable it after dataloader construction to
+        # avoid transferring large numpy arrays through worker IPC.
+        self.return_original = os.environ.get('BGD_INCLUDE_ORI_IMG', '1') != '0'
         self.im_files = self.get_img_files(self.img_path)
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class
@@ -140,8 +144,8 @@ class BaseDataset(Dataset):
             if self.single_cls:
                 self.labels[i]['cls'][:, 0] = 0
 
-    def load_image(self, i):
-        """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
+    def load_image(self, i, return_original=False):
+        """Load one image, optionally returning its unresized RGB pixels."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
             if fn.exists():  # load npy
@@ -151,6 +155,7 @@ class BaseDataset(Dataset):
                 if im is None:
                     raise FileNotFoundError(f'Image Not Found {f}')
 
+            original_rgb = cv2.cvtColor(im, cv2.COLOR_BGR2RGB) if return_original else None
             h0, w0 = im.shape[:2]  # orig hw
             r = self.imgsz / max(h0, w0)  # ratio
             if r != 1:  # if sizes are not equal
@@ -167,9 +172,18 @@ class BaseDataset(Dataset):
                 if len(self.buffer) >= self.max_buffer_length:
                     j = self.buffer.pop(0)
                     self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
-            return im, (h0, w0), im.shape[:2]
+            result = (im, (h0, w0), im.shape[:2])
+            return (*result, original_rgb) if return_original else result
 
-        return self.ims[i], self.im_hw0[i], self.im_hw[i]
+        result = (self.ims[i], self.im_hw0[i], self.im_hw[i])
+        if not return_original:
+            return result
+        # The RAM buffer stores resized images only. Read the original once for
+        # this sample rather than carrying all high-resolution images in RAM.
+        original = np.load(fn) if fn.exists() else cv2.imread(f)
+        if original is None:
+            raise FileNotFoundError(f'Image Not Found {f}')
+        return (*result, cv2.cvtColor(original, cv2.COLOR_BGR2RGB))
 
     def cache_images(self, cache):
         """Cache images to memory or disk."""
@@ -239,23 +253,27 @@ class BaseDataset(Dataset):
     def __getitem__(self, index):
         """Returns transformed label information for given index."""
         label = self.get_image_and_label(index)
-        if 'ratio_pad'  in label:
-            ratio_pad = label['ratio_pad']
-        ori_img =  label['ori_img']
+        ori_img = label.pop('ori_img', None)
         label = self.transforms(label)
-        label['ori_img'] = ori_img
-        # label['ratio_pad'] = ratio_pad
+        if ori_img is not None:
+            label['ori_img'] = ori_img
         return label
 
     def get_image_and_label(self, index):
         """Get and return label information from the dataset."""
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop('shape', None)  # shape is for rect, remove it
-        label['img'], label['ori_shape'], label['resized_shape'] = self.load_image(index)
-        label['ori_img'] = cv2.cvtColor(cv2.imread(self.im_files[index]),cv2.COLOR_BGR2RGB)
+        if self.return_original:
+            (label['img'], label['ori_shape'], label['resized_shape'],
+             label['ori_img']) = self.load_image(index, return_original=True)
+        else:
+            label['img'], label['ori_shape'], label['resized_shape'] = self.load_image(index)
 
         label['ratio_pad'] = (label['resized_shape'][0] / label['ori_shape'][0],
                           label['resized_shape'][1] / label['ori_shape'][1])  # for evaluation
+        if os.environ.get('BGD_CORRECTED_GEOMETRY') == '1':
+            from .direct_geometry import initial_sources
+            label['direct_sources'] = initial_sources(label['im_file'], label['ori_shape'], label['resized_shape'])
         if self.rect:
             label['rect_shape'] = self.batch_shapes[self.batch[index]]
         return self.update_labels_info(label)

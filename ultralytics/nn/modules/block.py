@@ -316,8 +316,22 @@ class BottleneckCSP(nn.Module):
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from mmcv.cnn import build_activation_layer, build_norm_layer
-from mmcv.ops.modulated_deform_conv import ModulatedDeformConv2d
+try:
+    from mmcv.cnn import build_activation_layer, build_norm_layer
+    from mmcv.ops.modulated_deform_conv import ModulatedDeformConv2d
+except ImportError:
+    # MMCV is only needed by the optional DyHead blocks. Keeping these imports
+    # optional allows standard YOLO models to run without compiling MMCV ops.
+    def _missing_mmcv(*args, **kwargs):
+        raise ImportError('MMCV with compiled ops is required to use DyHead modules.')
+
+    build_activation_layer = _missing_mmcv
+    build_norm_layer = _missing_mmcv
+
+    class ModulatedDeformConv2d(nn.Module):
+        def __init__(self, *args, **kwargs):
+            super().__init__()
+            _missing_mmcv()
 from mmengine.model import constant_init, normal_init
 
 def _make_divisible(v, divisor, min_value=None):

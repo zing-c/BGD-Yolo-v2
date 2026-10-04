@@ -364,7 +364,24 @@ class YOLO:
         #     overrides['resume'] = self.ckpt_path
         self.task = overrides.get('task') or self.task
         self.trainer = TASK_MAP[self.task][1](overrides=overrides, _callbacks=self.callbacks)
-        if not overrides.get('resume'):  # manually set model only if not resuming
+        if overrides.get('resume') and self.ckpt is not None:
+            # Keep the exact deserialized module when resuming.  Some project
+            # models attach trainable fusion modules and a custom forward path
+            # that cannot be reconstructed from the base model YAML alone.
+            # The checkpoint stores the non-EMA training weights as a state
+            # dict, so restore those before handing the module to the trainer.
+            model_state = self.ckpt.get('model')
+            if isinstance(model_state, dict):
+                self.model.load_state_dict(model_state, strict=False)
+            # attempt_load_one_weight() selects the EMA module, whose
+            # parameters are intentionally frozen.  A resumed trainer needs
+            # the same whole-network trainability as the interrupted run.
+            for parameter in self.model.parameters():
+                parameter.requires_grad_(True)
+            self.model.train()
+            self.trainer.model = self.model
+            self.trainer.resume_ckpt = self.ckpt
+        elif not overrides.get('resume'):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
         self.trainer.hub_session = self.session  # attach optional HUB session

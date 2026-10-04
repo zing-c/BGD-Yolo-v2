@@ -232,7 +232,15 @@ class BaseModel(nn.Module):
         """
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()
-        return self.criterion(self.predict(batch['img']) if preds is None else preds, batch)
+        # Corrected global-local fusion needs the augmentation/source metadata
+        # associated with the current tensor batch. Keep it only for this
+        # forward/loss call so checkpoints never retain transient image data.
+        self.batch = batch
+        try:
+            return self.criterion(self.predict(batch['img']) if preds is None else preds, batch)
+        finally:
+            if hasattr(self, 'batch'):
+                delattr(self, 'batch')
 
     def init_criterion(self):
         raise NotImplementedError('compute_loss() needs to be implemented by task heads')
@@ -269,6 +277,12 @@ class DetectionModel(BaseModel):
         if verbose:
             self.info()
             LOGGER.info('')
+
+    def bgd_318_grad_predict_once(self, x, profile=False, visualize=False):
+        """Run the pickle-stable Grad-CAM-enabled YOLO-FineDet forward."""
+        from experiments.run_318_fusion_alpha import grad_enabled_318_predict_once
+
+        return grad_enabled_318_predict_once(self, x, profile, visualize)
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs."""

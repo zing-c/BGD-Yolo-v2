@@ -431,27 +431,26 @@ class BaseTrainer:
             'epoch': self.epoch,
             'best_fitness': self.best_fitness,
             'model': self.model.state_dict(),
-            'detail_model': self.model.detail_model.state_dict(),
             'ema': deepcopy(self.ema.ema).half(),
             'updates': self.ema.updates,
             'optimizer': self.optimizer.state_dict(),
             'train_args': vars(self.args),  # save as dict
             'date': datetime.now().isoformat(),
             'version': __version__}
+        if hasattr(self.model, 'detail_model'):
+            ckpt['detail_model'] = self.model.detail_model.state_dict()
+            if getattr(self.model, 'bgd_318_alpha_config', {}).get('geometry_version') == 5:
+                # Validation and best.pt both use EMA; keep the auxiliary
+                # Detail export synchronized with that selected EMA model.
+                ckpt['detail_model'] = ckpt['ema'].detail_model.state_dict()
 
-        # Use dill (if exists) to serialize the lambda functions where pickle does not do this
-        try:
-            import dill as pickle
-        except ImportError:
-            import pickle
-
-        # Save last, best and delete
-        # torch.save(ckpt, self.last, pickle_module=pickle)
+        # The checkpoint contains state dictionaries and a regular nn.Module,
+        # so the standard serializer is sufficient and deterministic.
         torch.save(ckpt, self.last)
         if self.best_fitness == self.fitness:
-            torch.save(ckpt, self.best, pickle_module=pickle)
+            torch.save(ckpt, self.best)
         if (self.epoch > 0) and (self.save_period > 0) and (self.epoch % self.save_period == 0):
-            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt', pickle_module=pickle)
+            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt')
         del ckpt
 
     @staticmethod
@@ -466,7 +465,7 @@ class BaseTrainer:
         load/create/download model for any task.
         """
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
-            return
+            return getattr(self, 'resume_ckpt', None)
 
         model, weights = self.model, None
         ckpt = None

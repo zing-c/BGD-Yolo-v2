@@ -15,6 +15,7 @@ from ..utils.instance import Instances
 from ..utils.metrics import bbox_ioa
 from ..utils.ops import segment2box
 from .utils import polygons2masks, polygons2masks_overlap
+from .direct_geometry import KEY as DIRECT_SOURCES, update_sources
 
 POSE_FLIPLR_INDEX = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
 
@@ -149,6 +150,8 @@ class Mosaic(BaseMixTransform):
         """Apply mixup transformation to the input image and labels."""
         assert labels.get('rect_shape', None) is None, 'rect and mosaic are mutually exclusive.'
         assert len(labels.get('mix_labels', [])), 'There are no other images for mosaic augment.'
+        if DIRECT_SOURCES in labels and self.n != 4:
+            raise ValueError('Direct geometry currently supports four-tile Mosaic only')
         return self._mosaic4(labels) if self.n == 4 else self._mosaic9(labels)
 
     def _mosaic4(self, labels):
@@ -181,6 +184,9 @@ class Mosaic(BaseMixTransform):
             img4[y1a:y2a, x1a:x2a] = img[y1b:y2b, x1b:x2b]  # img4[ymin:ymax, xmin:xmax]
             padw = x1a - x1b
             padh = y1a - y1b
+
+            update_sources(labels_patch, np.array([[1, 0, padw], [0, 1, padh], [0, 0, 1]]),
+                           [x1a, y1a, x2a, y2a])
 
             labels_patch = self._update_labels(labels_patch, padw, padh)
             mosaic_labels.append(labels_patch)
@@ -264,6 +270,8 @@ class Mosaic(BaseMixTransform):
             'instances': Instances.concatenate(instances, axis=0),
             'mosaic_border': self.border}  # final_labels
         final_labels['instances'].clip(imgsz, imgsz)
+        if DIRECT_SOURCES in mosaic_labels[0]:
+            final_labels[DIRECT_SOURCES] = [source for item in mosaic_labels for source in item[DIRECT_SOURCES]]
         good = final_labels['instances'].remove_zero_area_boxes()
         final_labels['cls'] = final_labels['cls'][good]
         return final_labels
@@ -445,6 +453,7 @@ class RandomPerspective:
         # M is affine matrix
         # scale for func:`box_candidates`
         img, M, scale = self.affine_transform(img, border)
+        update_sources(labels, M, [0, 0, self.size[0], self.size[1]])
 
         bboxes = self.apply_bboxes(instances.bboxes, M)
 
@@ -492,6 +501,8 @@ class RandomHSV:
         img = labels['img']
         if self.hgain or self.sgain or self.vgain:
             r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
+            for source in labels.get(DIRECT_SOURCES, []):
+                source['hsv'] = r.copy()
             hue, sat, val = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
             dtype = img.dtype  # uint8
 
@@ -527,9 +538,13 @@ class RandomFlip:
         # Flip up-down
         if self.direction == 'vertical' and random.random() < self.p:
             img = np.flipud(img)
+            update_sources(labels, np.array([[1, 0, 0], [0, -1, img.shape[0]], [0, 0, 1]]),
+                           [0, 0, img.shape[1], img.shape[0]])
             instances.flipud(h)
         if self.direction == 'horizontal' and random.random() < self.p:
             img = np.fliplr(img)
+            update_sources(labels, np.array([[-1, 0, img.shape[1]], [0, 1, 0], [0, 0, 1]]),
+                           [0, 0, img.shape[1], img.shape[0]])
             instances.fliplr(w)
             # For keypoints
             if self.flip_idx is not None and instances.keypoints is not None:
@@ -587,6 +602,9 @@ class LetterBox:
         left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
         img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT,
                                  value=(114, 114, 114))  # add border
+        update_sources(labels, np.array([[new_unpad[0] / shape[1], 0, left],
+                                        [0, new_unpad[1] / shape[0], top], [0, 0, 1]]),
+                       [0, 0, img.shape[1], img.shape[0]])
 
         if len(labels):
             labels = self._update_labels(labels, ratio, dw, dh)
