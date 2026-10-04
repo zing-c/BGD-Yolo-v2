@@ -89,6 +89,23 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--corrected-geometry", action="store_true",
+        help=("opt into geometry v5: correct CAM H/W, track augmented native-image crops, "
+              "scatter their actual projected footprints and isolate CAM gradients; "
+              "requires --corrected-direct-fusion or input64 --multi-head-direct"),
+    )
+    parser.add_argument(
+        "--geometry-fixed-grid", action="store_true",
+        help=("keep all geometry v5 coordinate/gradient fixes, but inject the original "
+              "4x4 Detail output at its actual crop center without footprint resizing; "
+              "requires --corrected-geometry and --head-select mid/low (P4/P5)"),
+    )
+    parser.add_argument(
+        "--geometry-input-support", action="store_true",
+        help=("keep geometry fixes and the original CAM target, inject a fixed 64-input-pixel "
+              "context (P3=8x8, P4=4x4, P5=2x2); requires --corrected-geometry"),
+    )
+    parser.add_argument(
         "--multi-head-direct", action="store_true",
         help="directly fuse every head in --multi-heads without introducing fusion_alpha",
     )
@@ -128,6 +145,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--device", default="0")
+    parser.add_argument(
+        "--seed", type=int, default=0,
+        help=(
+            "random seed used both before constructing fresh fusion layers and by "
+            "the Ultralytics trainer"
+        ),
+    )
     parser.add_argument(
         "--amp", action=argparse.BooleanOptionalAction, default=True,
         help="use automatic mixed precision, matching the best318 training run",
@@ -518,6 +542,11 @@ def patch_multi_head_direct(legacy_val) -> None:
 def grad_enabled_318_predict_once(detection_model, images, profile=False, visualize=False):
     """Keep Grad-CAM usable inside the trainer's inference-mode validation."""
     original = detection_model.bgd_318_original_predict_once
+    config = getattr(detection_model, "bgd_318_alpha_config", {})
+    if config.get("geometry_version") == 5:
+        from experiments.direct_geometry_fusion import geometry_predict_once
+        def original(value, profile=False, visualize=False):
+            return geometry_predict_once(detection_model, value, profile, visualize)
     if not detection_model.training or torch.is_inference_mode_enabled() or not torch.is_grad_enabled():
         with torch.inference_mode(False), torch.enable_grad():
             images = images.detach().clone().requires_grad_(True)
@@ -671,6 +700,49 @@ def build_model(args: argparse.Namespace, legacy_val):
             )
         ),
     }
+    if getattr(args, "corrected_geometry", False):
+        from experiments.direct_geometry_fusion import METHOD, METHOD_FIXED_GRID, METHOD_INPUT_SUPPORT, METHOD_MULTI_INPUT_SUPPORT
+        fixed_grid = bool(getattr(args, "geometry_fixed_grid", False))
+        input_support = bool(getattr(args, "geometry_input_support", False))
+        if fixed_grid and input_support:
+            raise ValueError("Choose either fixed 4x4 or fixed input-64 support, not both")
+        if fixed_grid and args.head_select not in {"mid", "low"}:
+            raise ValueError("--geometry-fixed-grid requires the P4/P5 head")
+        if args.multi_head_direct and (not input_support or not args.multi_head_scale_aware or args.scatter_reduce != 'sum'):
+            raise ValueError('Corrected multi-head geometry requires input64, scale-aware and sum')
+        fusion_config.update({
+            "method": METHOD_MULTI_INPUT_SUPPORT if args.multi_head_direct else (
+                METHOD_INPUT_SUPPORT if input_support else METHOD_FIXED_GRID if fixed_grid else METHOD),
+            "geometry_version": 5,
+            "geometry_scatter_mode": "input64" if input_support else "fixed_grid" if fixed_grid else "projected",
+            "track_cam_values": input_support,
+            "crop_size_source_hw": [64, 64],
+            "cam_resize": "actual input (H,W), FP32 bilinear align_corners=False",
+            "cam_target": "sum of all original sigmoid classification scores",
+            "cam_gradients": "autograd.grad w.r.t. Detect activation only; preserve optimizer accumulation",
+            "source_geometry": "actual resize + four-tile Mosaic + axis-aligned affine + flip",
+            "window_size": "max(1, round(abs(source_to_input_axis_gain)*64)) independently for H/W",
+            "scatter": (
+                "fixed 64-input-pixel context at actual crop center; BCHW[y,x]; canvas clipping"
+                if input_support else
+                "fixed 4x4 Detail injection at actual projected crop center; in-place BCHW[y,x]; canvas clipping"
+                if fixed_grid else
+                "actual clamped source crop projected to input; in-place BCHW[y,x]; visibility clipping"
+            ),
+            "scatter_patch_hw": (
+                {"high": [8, 8], "mid": [4, 4], "low": [2, 2]}[args.head_select]
+                if input_support else [4, 4] if fixed_grid else "dynamic floor/ceil projected crop bounds per original image"
+            ),
+        })
+        if args.multi_head_direct:
+            fusion_config.update({
+                'geometry_multi_head': True,
+                'head_selects': head_names,
+                'cam_aggregation': 'normalize each head grid, resize, mean across heads, normalize aggregate',
+                'scatter_patch_hw': {name: {'high': [8, 8], 'mid': [4, 4], 'low': [2, 2]}[name] for name in head_names},
+                'scatter_reduce': 'sum',
+                'fusion': 'shared YOLO and Detail, independent 67->64 Conv/BN/ReLU per selected Detect classification head',
+            })
     if detail_preload is not None:
         fusion_config["detail_pretrained_coverage"] = float(
             detail_preload["pretrained_coverage"]
@@ -729,6 +801,10 @@ def load_joint_checkpoint(args: argparse.Namespace):
         "best318_framework_multi_head_direct_scaleaware_sum_v3",
         "best318_framework_multi_head_direct_lightdetail_d12_scaleaware_sum_v3",
         "best318_framework_pre_detect_p4_direct_v1",
+        "best318_framework_corrected_single_head_direct_geometry_v5",
+        "best318_framework_corrected_single_head_direct_geometry_v5_fixed4",
+        "best318_framework_corrected_single_head_direct_geometry_v5_input64",
+        "best318_framework_multi_head_direct_geometry_v5_input64",
     }
     if not isinstance(config, dict) or config.get("method") not in supported_methods:
         raise RuntimeError(f"Not a supported best318 joint checkpoint: {args.checkpoint}")
@@ -750,7 +826,7 @@ def load_joint_checkpoint(args: argparse.Namespace):
     wrapper.conf_threshold = float(config["candidate_conf"])
     wrapper.head_select = config["head_select"]
     wrapper.target_layers = list(config["target_layers"])
-    if config["method"] in {
+    if config.get('geometry_multi_head', False) or config["method"] in {
         "best318_framework_multi_head_direct_v1",
         "best318_framework_multi_head_direct_lightdetail_d12_v1",
         "best318_framework_multi_head_direct_xycorrected_v2",
@@ -767,6 +843,9 @@ def load_joint_checkpoint(args: argparse.Namespace):
         wrapper.m_layers = [detection_model.model[18]]
     wrapper.validator = None
     wrapper.batch = None
+    if config.get("geometry_version") == 5:
+        os.environ["BGD_CORRECTED_GEOMETRY"] = "1"
+        os.environ["BGD_INCLUDE_ORI_IMG"] = "0"
     return model
 
 
@@ -798,6 +877,8 @@ def print_configuration(args: argparse.Namespace, model) -> None:
         "amp": args.amp,
         "batch": args.batch,
         "workers": args.workers,
+        "seed": args.seed,
+        "deterministic": True,
         "resume_training": args.resume_training,
         "trainable_parameters": trainable,
         "total_parameters": total,
@@ -826,6 +907,26 @@ def main() -> None:
         raise ValueError("--learnable-alpha cannot be combined with a direct-fusion mode")
     if args.scatter_reduce != "sum" and not args.corrected_direct_fusion:
         raise ValueError("--scatter-reduce mean requires --corrected-direct-fusion")
+    if args.corrected_geometry and not (args.corrected_direct_fusion or args.multi_head_direct):
+        raise ValueError("--corrected-geometry requires --corrected-direct-fusion or --multi-head-direct")
+    if args.corrected_geometry and args.multi_head_direct and not (
+        args.geometry_input_support and args.multi_head_scale_aware and args.scatter_reduce == 'sum'
+    ):
+        raise ValueError('Corrected multi-head geometry requires input64, scale-aware and sum')
+    if args.geometry_fixed_grid and (not args.corrected_geometry or args.head_select not in {"mid", "low"}):
+        raise ValueError("--geometry-fixed-grid requires --corrected-geometry and --head-select mid/low")
+    if args.geometry_input_support and (not args.corrected_geometry or args.geometry_fixed_grid):
+        raise ValueError("--geometry-input-support requires --corrected-geometry and cannot combine with fixed-grid")
+    if args.corrected_geometry:
+        os.environ["BGD_CORRECTED_GEOMETRY"] = "1"
+        # Native images are loaded lazily only for selected source tiles. Do
+        # not transfer every full-resolution image from dataloader workers.
+        os.environ["BGD_INCLUDE_ORI_IMG"] = "0"
+        # Fresh Detail spatial projections / fusion layers are created before
+        # trainer.train() normally seeds RNG. Seed *before* construction so
+        # independent P4/P5 ablations really share the same initialization seed.
+        from ultralytics.yolo.utils.torch_utils import init_seeds
+        init_seeds(args.seed, deterministic=True)
     if args.resume_training and (args.mode != "train" or args.checkpoint is None):
         raise ValueError("--resume-training requires train mode and --checkpoint")
     if not direct_modes:
@@ -857,6 +958,10 @@ def main() -> None:
             use_pre_detect_p4_direct=args.pre_detect_p4_direct,
         )
         model = load_joint_checkpoint(args) if args.checkpoint is not None else build_model(args, legacy_val)
+        if model.model.bgd_318_alpha_config.get("track_cam_values", False) and args.mode == "train":
+            from experiments.direct_geometry_monitor import reset_cam_epoch, log_cam_epoch
+            model.add_callback("on_train_epoch_start", reset_cam_epoch)
+            model.add_callback("on_fit_epoch_end", log_cam_epoch)
         print_configuration(args, model)
 
         if args.mode == "val":
@@ -939,6 +1044,7 @@ def main() -> None:
                 warmup_momentum=args.warmup_momentum,
                 warmup_bias_lr=args.warmup_bias_lr, amp=args.amp,
                 batch=args.batch, imgsz=args.imgsz, workers=args.workers, device=args.device,
+                seed=args.seed, deterministic=True,
                 patience=args.patience, save_period=args.save_period,
                 project=str(ROOT / "experiments" / "runs"), name=args.name,
                 rect=args.rect_train, **geometry, **train_kwargs,

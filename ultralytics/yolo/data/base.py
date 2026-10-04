@@ -271,6 +271,9 @@ class BaseDataset(Dataset):
 
         label['ratio_pad'] = (label['resized_shape'][0] / label['ori_shape'][0],
                           label['resized_shape'][1] / label['ori_shape'][1])  # for evaluation
+        if os.environ.get('BGD_CORRECTED_GEOMETRY') == '1':
+            from .direct_geometry import initial_sources
+            label['direct_sources'] = initial_sources(label['im_file'], label['ori_shape'], label['resized_shape'])
         if self.rect:
             label['rect_shape'] = self.batch_shapes[self.batch[index]]
         return self.update_labels_info(label)

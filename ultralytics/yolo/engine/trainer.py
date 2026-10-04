@@ -463,6 +463,12 @@ class BaseTrainer:
             'version': __version__}
         if hasattr(self.model, 'detail_model'):
             ckpt['detail_model'] = self.model.detail_model.state_dict()
+            if getattr(self.model, 'bgd_318_alpha_config', {}).get('geometry_version') == 5:
+                # best.pt is selected from EMA validation. Keep the auxiliary
+                # Detail export equal to that same saved EMA, not raw/latest
+                # training Detail weights. ckpt['model'] remains raw state for
+                # exact optimizer-resume semantics.
+                ckpt['detail_model'] = ckpt['ema'].detail_model.state_dict()
         if hasattr(self.model, 'detail_encoder'):
             ckpt['detail_encoder'] = self.model.detail_encoder.state_dict()
         if hasattr(self.model, 'global_local_fusion'):
