@@ -17,3 +17,7 @@ Precision and recall were computed directly from TP, FP, and FN at a prediction-
 GFLOPs estimate supported forward operations at a reference resolution of 640 × 640. The BG-O2D estimates exclude Grad-CAM backpropagation. Inference timing uses the matching checkpoints from the batch-1, two-thread prefetch benchmark. Model-specific timing boundaries are in the results CSV.
 
 YOLOv8n reproduces AP75 of 89.77%. BG-O2D with P3, P4, and P5 reaches AP75 of 92.36% and mAP50:95 of 89.24%.
+
+## UAV200 evaluation
+
+[UAV200 results and exact image selection](uav200/README.md)
