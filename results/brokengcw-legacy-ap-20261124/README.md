@@ -1,10 +1,12 @@
 # Broken-GCW test results with legacy Ultralytics AP
 
-The table covers 15 detector checkpoints on the Broken-GCW test split (1,598 images and 234 annotated instances).
+The updated table covers 16 detector checkpoints on the Broken-GCW test split (1,598 images and 234 annotated instances).
 
-- [Results](results.csv) includes precision, recall, AP50, AP75, mAP50:95, parameter counts, forward GFLOPs, and per-image inference time.
-- [Checkpoint manifest](checkpoints.csv) maps every row to its original weight asset and SHA-256 digest.
+- [Updated results including RetinaNet R18-FPN](results-r18.csv) includes precision, recall, AP50, AP75, mAP50:95, parameter counts, forward GFLOPs, and per-image inference time.
+- [Updated checkpoint manifest](checkpoints-r18.csv) maps every row to its original weight asset and SHA-256 digest.
 - [Release and weights](https://github.com/zing-c/BGD-Yolo-v2/releases/tag/brokengcw-legacy-ap-20261124) contains the checkpoints and a downloadable copy of the results.
+
+[Original 15-model snapshot](results.csv)
 
 ## Evaluation protocol
 
